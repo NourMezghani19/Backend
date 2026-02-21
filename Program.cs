@@ -90,7 +90,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    
+    /*
     // ── SuperAdmin ──
     if (!db.Utilisateurs.Any(u => u.Role == "SuperAdministrateur"))
     {
@@ -142,7 +142,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Admin : admin@pfa.com / Admin123!");
     }
 
-   
+   */
     
     // ── Dossier uploads pour Emna ──
     var uploadsPath = Path.Combine(
