@@ -28,8 +28,8 @@ namespace backend.Services
         {
             // 1. Chercher l'utilisateur par email (insensible à la casse)
             var user = await db.Utilisateurs
-                .FirstOrDefaultAsync(u =>
-                u.Email.ToLower() == email.ToLower());
+           .FirstOrDefaultAsync(u =>
+         u.Email.ToLower() == email.Trim().ToLower());
 
             if (user == null)
                 return null; // utilisateur non trouvé
@@ -84,15 +84,15 @@ namespace backend.Services
             // Claims = informations encodées dans le token
             var claims = new[]
             {
-         new Claim("id",              user.Id.ToString()),
-         new Claim("email",           user.Email),
-         new Claim("nom",             user.Nom),
-         new Claim("prenom",          user.Prenom),
-         new Claim(ClaimTypes.Role,    user.Role),
-         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-         new Claim(JwtRegisteredClaimNames.Iat,
-         new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString())
- };
+                 new Claim("id",              user.Id.ToString()),
+                 new Claim("email",           user.Email),
+                 new Claim("nom",             user.Nom),
+                 new Claim("prenom",          user.Prenom),
+                 new Claim(ClaimTypes.Role,    user.Role),
+                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                 new Claim(JwtRegisteredClaimNames.Iat,
+                 new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString())
+            };
 
             // Clé secrète (depuis appsettings.json)
             var keyBytes = Encoding.UTF8.GetBytes(config["Jwt:Key"]!);

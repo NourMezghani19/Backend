@@ -2,6 +2,7 @@ using backend.Data;
 using backend.Models;
 using backend.Services;
 using backend.Services.Admin;
+using backend.Services.MembreServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -10,18 +11,17 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ?? 1. Base de donn�es Entity Framework Core ??
+// ?? 1. Base de donn�es Entity Framework Core ??
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration
         .GetConnectionString("DefaultConnection")));
 
-// ?? 2. Services m�tier (injection de d�pendance) ??
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<EmailService>();
 
-// ← AJOUTER cette ligne
 
+builder.Services.AddScoped<MembreService>();
 // ?? 3. JWT Authentication ??
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services
@@ -30,8 +30,8 @@ builder.Services
     {
         opt.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
+            ValidateIssuer = false,
+            ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
@@ -41,7 +41,7 @@ builder.Services
         };
     });
 
-// ?? 4. Autorisation par r�le ??
+// ?? 4. Autorisation par r�le ??
 builder.Services.AddAuthorization(opt =>
 {
     opt.AddPolicy("SuperAdministrateur", p => p.RequireRole("SuperAdministrateur"));
@@ -89,24 +89,71 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    if (!context.Utilisateurs.Any(u => u.Role == "SuperAdministrateur"))
+    // ── SuperAdmin ──
+    if (!db.Utilisateurs.Any(u => u.Role == "SuperAdministrateur"))
     {
-        context.Utilisateurs.Add(new SuperAdministrateur
+        db.Utilisateurs.Add(new SuperAdministrateur
         {
-            Nom = "administrateur",
+            Nom = "Admin",
             Prenom = "Super",
             Email = "superadmin@pfa.com",
             MotDePasse = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
             Role = "SuperAdministrateur",
             DateCreation = DateTime.UtcNow
         });
+        db.SaveChanges();
+        Console.WriteLine("SuperAdmin : superadmin@pfa.com / Admin123!");
+    }
+    // ── Membre Prédéfini pour Test ──
+    if (!db.Utilisateurs.Any(u => u.Email == "membre@pfa.com"))
+    {
+        db.Membres.Add(new Membre
+        {
+            Nom = "Dupont",
+            Prenom = "Jean",
+            Email = "membre@pfa.com",
+            MotDePasse = BCrypt.Net.BCrypt.HashPassword("Membre123!"),
+            Telephone = "11111111",
+            Role = "Membre",
+            IdSalleSport = "SALLE-001",
+            Taille = 180,
+            Poids = 75,
+            DateInscription = DateTime.UtcNow,
+            DateCreation = DateTime.UtcNow
+        });
+        db.SaveChanges();
+        Console.WriteLine("Membre Test : membre@pfa.com / Membre123!");
+    }
+    // ── Administrateur ──
+    if (!db.Utilisateurs.Any(u => u.Role == "Administrateur"))
+    {
+        db.Utilisateurs.Add(new Administrateur
+        {
+            Nom = "Benali",
+            Prenom = "Mohamed",
+            Email = "admin@pfa.com",
+            MotDePasse = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            Role = "Administrateur",
+            DateCreation = DateTime.UtcNow
+        });
+        db.SaveChanges();
+        Console.WriteLine("Admin : admin@pfa.com / Admin123!");
+    }
 
-        context.SaveChanges();
+   
+
+    // ── Dossier uploads pour Emna ──
+    var uploadsPath = Path.Combine(
+        app.Environment.WebRootPath ?? "wwwroot", "uploads");
+    if (!Directory.Exists(uploadsPath))
+    {
+        Directory.CreateDirectory(uploadsPath);
+        Console.WriteLine("Dossier uploads créé");
     }
 }
-// ?? Middleware pipeline ??
+
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors("PFA_CORS");
