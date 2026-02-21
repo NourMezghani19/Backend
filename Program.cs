@@ -2,6 +2,7 @@ using System.Text;
 using backend.Data;
 using backend.Models;
 using backend.Services;
+using backend.Services.SuperAdminstrateur;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -16,6 +17,8 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 // ?? 2. Services m�tier (injection de d�pendance) ??
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<SuperAdministrateurService>();
+
 
 // ?? 3. JWT Authentication ??
 var jwtKey = builder.Configuration["Jwt:Key"]!;
