@@ -1,10 +1,11 @@
-using System.Text;
 using backend.Data;
 using backend.Models;
 using backend.Services;
+using backend.Services.MembreServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +17,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 // ?? 2. Services m�tier (injection de d�pendance) ??
 builder.Services.AddScoped<AuthService>();
-
+builder.Services.AddScoped<MembreService>();
 // ?? 3. JWT Authentication ??
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services
@@ -83,6 +84,31 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    
+    if (!db.Utilisateurs.Any(u => u.Role == "SuperAdministrateur"))
+    {
+        db.Utilisateurs.Add(new Membre
+        {
+            Nom = "Ben Ali",
+            Prenom = "Ahmed",
+            Email = "ahmed.benali@gmail.com",
+            MotDePasse = BCrypt.Net.BCrypt.HashPassword("Test1234!"),
+            Telephone = "22334455",
+            Taille = 175f,
+            Poids = 70f,
+            Role = "Membre",
+            PhotoProfile = "gggg",
+
+            DateInscription= DateTime.UtcNow,
+        }
+
+        );
+        await db.SaveChangesAsync();
+    }
+}
+/*using (var scope = app.Services.CreateScope())
+{
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     if (!context.Utilisateurs.Any(u => u.Role == "SuperAdministrateur"))
@@ -99,7 +125,7 @@ using (var scope = app.Services.CreateScope())
 
         context.SaveChanges();
     }
-}
+}*/
 // ?? Middleware pipeline ??
 app.UseSwagger();
 app.UseSwaggerUI();
