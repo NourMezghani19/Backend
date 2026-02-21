@@ -49,6 +49,22 @@ namespace backend.Services.MembreServices
             return MapToDto(m);
         }
 
+        public async Task<(bool success, string message)> ModifierMotDePasse(int id, ChangePasswordDto dto)
+        {
+            var m = await _db.Membres.FindAsync(id);
+            if (m == null) return (false, "Membre non trouvé");
+
+            // 1. Vérifier si l'ancien mot de passe est correct
+            bool isOldPasswordValid = BCrypt.Net.BCrypt.Verify(dto.AncienMotDePasse, m.MotDePasse);
+            if (!isOldPasswordValid)
+                return (false, "L'ancien mot de passe est incorrect");
+
+            // 2. Hacher et sauvegarder le nouveau mot de passe
+            m.MotDePasse = BCrypt.Net.BCrypt.HashPassword(dto.NouveauMotDePasse);
+            await _db.SaveChangesAsync();
+
+            return (true, "Mot de passe modifié avec succès");
+        }
         // ════════════════════════════════════════════════
         // UploadPhotoProfile() → upload de la photo de profil
         // Sauvegarde dans wwwroot/uploads/ + met à jour PhotoProfile en DB

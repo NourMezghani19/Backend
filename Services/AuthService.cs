@@ -84,8 +84,8 @@ namespace backend.Services
             // Claims = informations encodées dans le token
             var claims = new[]
             {
-                 new Claim("id",              user.Id.ToString()),
-                 new Claim("email",           user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim("email",           user.Email),
                  new Claim("nom",             user.Nom),
                  new Claim("prenom",          user.Prenom),
                  new Claim(ClaimTypes.Role,    user.Role),

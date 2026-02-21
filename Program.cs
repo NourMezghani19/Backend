@@ -90,7 +90,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
+    
     // ── SuperAdmin ──
     if (!db.Utilisateurs.Any(u => u.Role == "SuperAdministrateur"))
     {
@@ -143,7 +143,7 @@ using (var scope = app.Services.CreateScope())
     }
 
    
-
+    
     // ── Dossier uploads pour Emna ──
     var uploadsPath = Path.Combine(
         app.Environment.WebRootPath ?? "wwwroot", "uploads");

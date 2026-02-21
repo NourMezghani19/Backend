@@ -1,9 +1,11 @@
 ﻿using backend.Data;
 using backend.DTOs;
 using backend.DTOs.Membre;
+using backend.Services;
 using backend.Services.MembreServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace backend.Controllers.Membre
 {
@@ -16,12 +18,34 @@ namespace backend.Controllers.Membre
     public class MembreController : ControllerBase
     {
         private readonly MembreService _svc;
-
-        public MembreController(MembreService svc)
+        private readonly AuthService _authSvc;
+        public MembreController(MembreService svc, AuthService authSvc)
         {
             _svc = svc;
+            _authSvc = authSvc;
         }
+        [Authorize(Policy = "Membre")]
+        [HttpPut("modifier-mot-de-passe")]
+        public async Task<IActionResult> ModifierMotDePasse([FromBody] ChangePasswordDto dto)
+        {
+            // Recherche le claim standard NameIdentifier
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
+            if (userIdClaim == null)
+            {
+                return Unauthorized(new { message = "Identifiant utilisateur introuvable dans le token." });
+            }
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            // Appel à votre service de changement de mot de passe
+            var result = await _authSvc.ChangerMotDePasse(userId, dto.AncienMotDePasse, dto.NouveauMotDePasse);
+
+            if (!result)
+                return BadRequest(new { message = "L'ancien mot de passe est incorrect ou utilisateur introuvable." });
+
+            return Ok(new { message = "Mot de passe modifié avec succès !" });
+        }
         // ════════════════════════════════════════════════
         // GET /api/membres/{id}
         // Voir le profil complet d'un membre
