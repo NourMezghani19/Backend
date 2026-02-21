@@ -34,6 +34,7 @@ namespace backend.Controllers
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await context.Utilisateurs
+                .Where(u => u.Role == "Membre")
                 .Select(u => new
                 {
                     u.Id,
