@@ -1,10 +1,11 @@
-using System.Text;
 using backend.Data;
 using backend.Models;
 using backend.Services;
+using backend.Services.Admin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,10 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 // ?? 2. Services métier (injection de dépendance) ??
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<AdminService>();
+builder.Services.AddScoped<EmailService>();
+
+// â† AJOUTER cette ligne
 
 // ?? 3. JWT Authentication ??
 var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -55,7 +60,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "PFA API", Version = "v1" });
-    // Swagger avec support JWT
+    // Swagger avec support
+    // JWT
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,

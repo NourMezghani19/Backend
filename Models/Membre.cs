@@ -1,7 +1,12 @@
-﻿namespace backend.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace backend.Models
 {
     public class Membre : Utilisateur
     {
+        [Required]
+        [MaxLength(20)]
+        public string IdSalleSport { get; set; } = string.Empty;  // ← NOUVEAU
         public float Taille { get; set; }
         public float Poids { get; set; }
         public string? PhotoProfile { get; set; }
