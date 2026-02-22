@@ -60,7 +60,7 @@ namespace backend.Services.SuperAdminstrateur
             Telephone = user.Telephone,
             DateCreation = user.DateCreation,
            // Role = user.Role,
-            NomComplet = $"{user.Prenom} {user.Nom}"
+           // NomComplet = $"{user.Prenom} {user.Nom}"
         };
         public async Task<bool> SupprimerAdministrateur(int adminId)
         {
@@ -99,7 +99,7 @@ namespace backend.Services.SuperAdminstrateur
                     Telephone = a.Telephone,
                     DateCreation = a.DateCreation,
                     //Role = a.Role,
-                    NomComplet = $"{a.Prenom} {a.Nom}"
+                    //NomComplet = $"{a.Prenom} {a.Nom}"
                 })
                 .ToListAsync();
         }
@@ -130,7 +130,7 @@ namespace backend.Services.SuperAdminstrateur
                     Telephone = a.Telephone,
                     DateCreation = a.DateCreation,
                     //Role = a.Role,
-                    NomComplet = $"{a.Prenom} {a.Nom}"
+                    //NomComplet = $"{a.Prenom} {a.Nom}"
                 })
                 .ToListAsync();
         }

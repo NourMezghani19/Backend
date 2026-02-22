@@ -23,9 +23,19 @@ namespace backend.Data
                 .HasValue<Administrateur>("Administrateur")
                 .HasValue<Membre>("Membre");
 
+         
             // Email unique
             modelBuilder.Entity<Utilisateur>()
-                .HasIndex(u => u.Email).IsUnique();
+              .HasIndex(u => u.Email)
+              .IsUnique()
+              .HasDatabaseName("IX_Utilisateurs_Email");
+
+            // Téléphone unique (ignore les nulls — plusieurs peuvent avoir null)
+            modelBuilder.Entity<Utilisateur>()
+              .HasIndex(u => u.Telephone)
+              .IsUnique()
+              .HasFilter("[Telephone] IS NOT NULL")   // ← null n'est pas considéré doublon
+              .HasDatabaseName("IX_Utilisateurs_Telephone"); ;
         }
     }
 }

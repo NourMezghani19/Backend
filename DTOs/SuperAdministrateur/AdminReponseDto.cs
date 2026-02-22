@@ -9,6 +9,6 @@
         public string? Telephone { get; set; }
         public DateTime DateCreation { get; set; }
         //public string Role { get; set; } =string.Empty;
-        public string NomComplet { get; set; } = string.Empty;
+       //public string NomComplet { get; set; } = string.Empty;
     }
 }

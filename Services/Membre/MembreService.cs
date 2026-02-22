@@ -142,7 +142,7 @@ namespace backend.Services.MembreServices
                 Id = m.Id,
                 Nom = m.Nom,
                 Prenom = m.Prenom,
-                NomComplet = $"{m.Prenom} {m.Nom}",
+               // NomComplet = $"{m.Prenom} {m.Nom}",
                 Email = m.Email,
                 Telephone = m.Telephone,
                 Taille = m.Taille,

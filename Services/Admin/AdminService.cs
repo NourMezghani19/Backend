@@ -155,7 +155,7 @@ namespace backend.Services.Admin
                     Poids = m.Poids,
                     PhotoProfile = m.PhotoProfile,
                     DateInscription = m.DateInscription,
-                    NomComplet = $"{m.Prenom} {m.Nom}"
+                    //NomComplet = $"{m.Prenom} {m.Nom}"
                 })
                 .ToListAsync();
         }
@@ -210,7 +210,7 @@ namespace backend.Services.Admin
             Poids = m.Poids,
             PhotoProfile = m.PhotoProfile,
             DateInscription = m.DateInscription,
-            NomComplet = $"{m.Prenom} {m.Nom}"
+            //NomComplet = $"{m.Prenom} {m.Nom}"
         };
     }
 

@@ -70,7 +70,7 @@ public class SuperAdminController : ControllerBase
                 new { id = result.Id },
                 new
                 {
-                    message = $" '{result.NomComplet}' créé avec succès ✓",
+                    message = $" '{result.Nom}   {result.Prenom}' créé avec succès ✓",
                     success = true,
                     data = result
                 });

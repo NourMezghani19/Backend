@@ -1,12 +1,9 @@
 using backend.Data;
 using backend.Models;
 using backend.Services;
-<<<<<<< HEAD
 using backend.Services.Admin;
 using backend.Services.MembreServices;
-=======
 using backend.Services.SuperAdminstrateur;
->>>>>>> aa16d282b976b3099d7ca1477c2594c3b95700f0
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -21,13 +18,10 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
         .GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<AuthService>();
-<<<<<<< HEAD
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<EmailService>();
-=======
 builder.Services.AddScoped<SuperAdministrateurService>();
 
->>>>>>> aa16d282b976b3099d7ca1477c2594c3b95700f0
 
 
 builder.Services.AddScoped<MembreService>();
@@ -99,7 +93,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    /*
+    
     // ── SuperAdmin ──
     if (!db.Utilisateurs.Any(u => u.Role == "SuperAdministrateur"))
     {
@@ -115,6 +109,7 @@ using (var scope = app.Services.CreateScope())
         db.SaveChanges();
         Console.WriteLine("SuperAdmin : superadmin@pfa.com / Admin123!");
     }
+    /*
     // ── Membre Prédéfini pour Test ──
     if (!db.Utilisateurs.Any(u => u.Email == "membre@pfa.com"))
     {

@@ -12,7 +12,7 @@ namespace backend.Controllers.Membre
 
     [ApiController]
     [Route("api/membres")]
-    [Authorize]
+    [Authorize(Roles ="Membre")]
     // Tout utilisateur connecté peut accéder
     // (chaque membre ne voit que son propre profil — vérifié dans le service)
     public class MembreController : ControllerBase
@@ -24,7 +24,7 @@ namespace backend.Controllers.Membre
             _svc = svc;
             _authSvc = authSvc;
         }
-        [Authorize(Policy = "Membre")]
+    
         [HttpPut("modifier-mot-de-passe")]
         public async Task<IActionResult> ModifierMotDePasse([FromBody] ChangePasswordDto dto)
         {
@@ -58,14 +58,10 @@ namespace backend.Controllers.Membre
                 return NotFound(new { message = $"Membre #{id} non trouvé" });
 
             return Ok(profil);
-            // Retourne : { id, nom, prenom, email, taille, poids, photoProfile,
-            //             dateInscription, imc, categorieIMC }
+         
         }
 
-        // ════════════════════════════════════════════════
-        // PUT /api/membres/{id} → modifierProfil()
-        // Body : { nom, prenom, telephone, taille, poids }
-        // ════════════════════════════════════════════════
+       
         [HttpPut("{id:int}")]
         public async Task<IActionResult> ModifierProfil(
             int id, [FromBody] UpdateMembreDto dto)

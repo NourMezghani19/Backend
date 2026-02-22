@@ -68,7 +68,7 @@ namespace backend.Controllers.Admin
                 var result = await svc.CreerCompteMembre(dto);
                 return Created($"/api/admin/membres/{result.Id}", new
                 {
-                    message = $"Compte membre '{result.NomComplet}' créé. Email envoyé ✓",
+                    message = $"Compte membre '{result.Nom} {result.Prenom}' créé. Email envoyé ✓",
                     success = true,
                     membre = result
                 });

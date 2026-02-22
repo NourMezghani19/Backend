@@ -14,7 +14,7 @@
         public float Poids { get; set; }
         public string? PhotoProfile { get; set; }
         public DateTime DateInscription { get; set; }
-        public string NomComplet { get; set; } = string.Empty;
-        public float IMC { get; set; }
+        //public string NomComplet { get; set; } = string.Empty;
+       // public float IMC { get; set; }
     }
 }
