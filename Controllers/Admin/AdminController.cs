@@ -17,11 +17,7 @@ namespace backend.Controllers.Admin
             this.svc = svc;
         }
 
-        // ════════════════════════════════════════════════
-        // GET /api/admin/verifier-id/{idSalle}
-        // L'Admin vérifie si l'ID salle est valide
-        // AVANT de créer le compte
-        // ════════════════════════════════════════════════
+        
         [HttpGet("verifier-id/{idSalle}")]
         public IActionResult VerifierIdSalle(string idSalle)
         {
@@ -29,19 +25,12 @@ namespace backend.Controllers.Admin
             return result.Valide ? Ok(result) : BadRequest(result);
         }
 
-        // ════════════════════════════════════════════════
-        // GET /api/admin/ids-statut
-        // Voir combien d'IDs sont disponibles
-        // ════════════════════════════════════════════════
         [HttpGet("ids-statut")]
         public IActionResult GetStatutIds()
         {
             return Ok(svc.GetStatutIds());
         }
 
-        // ════════════════════════════════════════════════
-        // GET /api/admin/membres
-        // ════════════════════════════════════════════════
         [HttpGet("membres")]
         public async Task<IActionResult> GetMembres([FromQuery] string? search = null)
         {
@@ -54,10 +43,7 @@ namespace backend.Controllers.Admin
             });
         }
 
-        // ════════════════════════════════════════════════
-        // POST /api/admin/membres → creerCompteMembre()
-        // L'ID salle est vérifié automatiquement
-        // ════════════════════════════════════════════════
+
         [HttpPost("membres")]
         public async Task<IActionResult> CreerMembre([FromBody] CreateMembreDto dto)
         {

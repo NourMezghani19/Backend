@@ -14,10 +14,6 @@ namespace backend.Services.Admin
             this.logger = logger;
         }
 
-        // ════════════════════════════════════════════════
-        // envoyerEmailInscription() — Email de bienvenue
-        // Envoyé automatiquement lors de la création d'un membre
-        // ════════════════════════════════════════════════
         public async Task<bool> EnvoyerEmailInscription(
             string destinataire,
             string nomComplet,
@@ -56,9 +52,6 @@ namespace backend.Services.Admin
             }
         }
 
-        // ════════════════════════════════════════════════
-        // Template HTML de l'email
-        // ════════════════════════════════════════════════
         private static string BuildEmailBody(
             string nomComplet,
             string motDePasseTemp,

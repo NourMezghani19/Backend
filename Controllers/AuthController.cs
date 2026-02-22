@@ -42,10 +42,6 @@ namespace backend.Controllers
             return Ok(result);
         }
 
-        // ════════════════════════════════════════════════
-        // POST /api/auth/logout → seDeconnecter()
-        // JWT est stateless → le client supprime son token local
-        // ════════════════════════════════════════════════
         [HttpPost("logout")]
         [Authorize]
         /*public IActionResult Logout()
