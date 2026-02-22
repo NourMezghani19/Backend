@@ -21,25 +21,19 @@ namespace backend.Services
             this.config = config;
         }
 
-        // ════════════════════════════════════════════════
-        // seConnecter() — Vérifier identifiants → JWT
-        // ════════════════════════════════════════════════
         public async Task<AuthResponseDto?> SeConnecter(string email, string motDePasse)
         {
-            // 1. Chercher l'utilisateur par email (insensible à la casse)
             var user = await db.Utilisateurs
            .FirstOrDefaultAsync(u =>
          u.Email.ToLower() == email.Trim().ToLower());
 
             if (user == null)
-                return null; // utilisateur non trouvé
+                return null;
 
-            // 2. Vérifier le mot de passe avec BCrypt
             var motDePasseValide = BCrypt.Net.BCrypt.Verify(motDePasse, user.MotDePasse);
             if (!motDePasseValide)
-                return null; // mot de passe incorrect
+                return null; 
 
-            // 3. Générer le token JWT
             var expiration = DateTime.UtcNow.AddHours(
                 int.Parse(config["Jwt:ExpiresInHours"] ?? "8"));
 
@@ -58,14 +52,6 @@ namespace backend.Services
             };
         }
 
-        // ════════════════════════════════════════════════
-        // Génération du token JWT
-        // ════════════════════════════════════════════════
-       
-
-        // ════════════════════════════════════════════════
-        // Changer le mot de passe
-        // ════════════════════════════════════════════════
         public async Task<bool> ChangerMotDePasse(
             int userId, string ancienMdp, string nouveauMdp)
         {
@@ -73,7 +59,7 @@ namespace backend.Services
             if (user == null) return false;
 
             if (!BCrypt.Net.BCrypt.Verify(ancienMdp, user.MotDePasse))
-                return false; // ancien mot de passe incorrect
+                return false; 
 
             user.MotDePasse = BCrypt.Net.BCrypt.HashPassword(nouveauMdp);
             await db.SaveChangesAsync();
@@ -81,7 +67,6 @@ namespace backend.Services
         }
         public string GenererToken(Utilisateur user, DateTime expiration)
         {
-            // Claims = informations encodées dans le token
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -94,12 +79,10 @@ namespace backend.Services
                  new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString())
             };
 
-            // Clé secrète (depuis appsettings.json)
             var keyBytes = Encoding.UTF8.GetBytes(config["Jwt:Key"]!);
             var key = new SymmetricSecurityKey(keyBytes);
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            // Créer le token
             var token = new JwtSecurityToken(
                 issuer: config["Jwt:Issuer"],
                 audience: config["Jwt:Audience"],

@@ -7,7 +7,6 @@ namespace backend.Controllers;
 
 [ApiController]
 [Authorize(Roles = "SuperAdministrateur")]
-// Seul le SuperAdmin peut accéder
 public class SuperAdminController : ControllerBase
 {
     private readonly SuperAdministrateurService svc;
@@ -70,7 +69,7 @@ public class SuperAdminController : ControllerBase
                 new { id = result.Id },
                 new
                 {
-                    message = $" '{result.NomComplet}' créé avec succès ✓",
+                    message = $" '{result.Nom}   {result.Prenom}' créé avec succès ✓",
                     success = true,
                     data = result
                 });

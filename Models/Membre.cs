@@ -6,7 +6,7 @@ namespace backend.Models
     {
         [Required]
         [MaxLength(20)]
-        public string IdSalleSport { get; set; } = string.Empty;  // ← NOUVEAU
+        public string IdSalleSport { get; set; } = string.Empty;  
         public float Taille { get; set; }
         public float Poids { get; set; }
         public string? PhotoProfile { get; set; }

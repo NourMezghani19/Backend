@@ -42,23 +42,9 @@ namespace backend.Controllers
             return Ok(result);
         }
 
-        // ════════════════════════════════════════════════
-        // POST /api/auth/logout → seDeconnecter()
-        // JWT est stateless → le client supprime son token local
-        // ════════════════════════════════════════════════
+        
         [HttpPost("logout")]
         [Authorize]
-        /*public IActionResult Logout()
-        {
-            var userEmail = User.FindFirst("email")?.Value;
-            return Ok(new
-            {
-                message = $"Déconnexion réussie. À bientôt !",
-                success = true
-            });
-        }*/
-
-   
         public IActionResult Logout()
         {
             var userEmail = User.FindFirst("email")?.Value;

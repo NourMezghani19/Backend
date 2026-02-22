@@ -59,33 +59,25 @@ namespace backend.Services.SuperAdminstrateur
             Email = user.Email,
             Telephone = user.Telephone,
             DateCreation = user.DateCreation,
-           // Role = user.Role,
-            NomComplet = $"{user.Prenom} {user.Nom}"
         };
         public async Task<bool> SupprimerAdministrateur(int adminId)
         {
             var admin = await db.Administrateurs.FindAsync(adminId);
 
             if (admin == null)
-                return false; // Admin non trouvé
+                return false; 
 
             db.Administrateurs.Remove(admin);
             await db.SaveChangesAsync();
             return true;
         }
 
-        // ════════════════════════════════════════════════
-        // Obtenir un admin par ID
-        // ════════════════════════════════════════════════
         public async Task<AdminReponseDto?> GetAdminById(int id)
         {
             var admin = await db.Administrateurs.FindAsync(id);
             return admin == null ? null : MapToDto(admin);
         }
 
-        // ════════════════════════════════════════════════
-        // Liste tous les admins
-        // ════════════════════════════════════════════════
         public async Task<List<AdminReponseDto>> GetAllAdmins()
         {
             return await db.Administrateurs
@@ -98,25 +90,17 @@ namespace backend.Services.SuperAdminstrateur
                     Email = a.Email,
                     Telephone = a.Telephone,
                     DateCreation = a.DateCreation,
-                    //Role = a.Role,
-                    NomComplet = $"{a.Prenom} {a.Nom}"
                 })
                 .ToListAsync();
         }
         
 
-        // ════════════════════════════════════════════════
-        // Obtenir un admin par ID
-        // ════════════════════════════════════════════════
         public async Task<AdminReponseDto?> GetSuperAdminById(int id)
         {
             var admin = await db.SuperAdministrateurs.FindAsync(id);
             return admin == null ? null : MapToDto(admin);
         }
 
-        // ════════════════════════════════════════════════
-        // Liste tous les admins
-        // ════════════════════════════════════════════════
         public async Task<List<AdminReponseDto>> GetAllSuperAdmins()
         {
             return await db.SuperAdministrateurs
@@ -129,8 +113,6 @@ namespace backend.Services.SuperAdminstrateur
                     Email = a.Email,
                     Telephone = a.Telephone,
                     DateCreation = a.DateCreation,
-                    //Role = a.Role,
-                    NomComplet = $"{a.Prenom} {a.Nom}"
                 })
                 .ToListAsync();
         }
