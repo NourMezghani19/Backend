@@ -10,11 +10,6 @@ namespace backend.Services.Admin
         private readonly AppDbContext db;
         private readonly EmailService email;
 
-        // ════════════════════════════════════════════════
-        // IDs prédéfinis de la salle de sport
-        // Dans un vrai projet → vient de la base de données
-        // Pour le PFA → liste fixe dans le code
-        // ════════════════════════════════════════════════
         private static readonly HashSet<string> _idsSalleValides = new()
     {
         "SPORT-2024-001",
@@ -29,8 +24,6 @@ namespace backend.Services.Admin
         "SPORT-2024-010"
     };
 
-        // IDs déjà utilisés pour créer un compte
-        // (évite de créer 2 comptes avec le même ID)
         private static readonly HashSet<string> _idsDejaUtilises = new();
 
         public AdminService(AppDbContext db, EmailService email)
@@ -39,13 +32,8 @@ namespace backend.Services.Admin
             this.email = email;
         }
 
-        // ════════════════════════════════════════════════
-        // VÉRIFIER si un ID salle est valide
-        // Appelé par l'Admin avant de créer le compte
-        // ════════════════════════════════════════════════
         public VerificationIdResult VerifierIdSalle(string idSalle)
         {
-            // 1. ID existe dans la liste de la salle ?
             if (!_idsSalleValides.Contains(idSalle))
                 return new VerificationIdResult
                 {
@@ -54,7 +42,6 @@ namespace backend.Services.Admin
                     IdSalle = idSalle
                 };
 
-            // 2. ID déjà utilisé pour créer un compte ?
             if (_idsDejaUtilises.Contains(idSalle))
                 return new VerificationIdResult
                 {
@@ -63,7 +50,6 @@ namespace backend.Services.Admin
                     IdSalle = idSalle
                 };
 
-            // 3. ID valide et disponible ✓
             return new VerificationIdResult
             {
                 Valide = true,
@@ -72,27 +58,22 @@ namespace backend.Services.Admin
             };
         }
 
-        // ════════════════════════════════════════════════
-        // creerCompteMembre() — avec vérification ID salle
-        // ════════════════════════════════════════════════
+      
         public async Task<MembreResponseDto> CreerCompteMembre(CreateMembreDto dto)
         {
-            // ── ÉTAPE 1 : Vérifier l'ID salle de sport ──
             var verification = VerifierIdSalle(dto.IdSalleSport);
             if (!verification.Valide)
                 throw new InvalidOperationException(verification.Message);
 
-            // ── ÉTAPE 2 : Vérifier email unique ──
+            
             var existe = await db.Utilisateurs
                 .AnyAsync(u => u.Email.ToLower() == dto.Email.ToLower());
             if (existe)
                 throw new InvalidOperationException(
                     $"Un compte avec l'email '{dto.Email}' existe déjà");
 
-            // ── ÉTAPE 3 : Générer mot de passe temporaire ──
             var motDePasseTemp = GenererMotDePasse();
 
-            // ── ÉTAPE 4 : Créer le membre ──
             var membre = new Membre
             {
                 IdSalleSport = dto.IdSalleSport,
@@ -108,14 +89,11 @@ namespace backend.Services.Admin
                 DateInscription = DateTime.UtcNow
             };
 
-            // ── ÉTAPE 5 : Sauvegarder en DB ──
             db.Membres.Add(membre);
             await db.SaveChangesAsync();
 
-            // ── ÉTAPE 6 : Marquer l'ID comme utilisé ──
             _idsDejaUtilises.Add(dto.IdSalleSport);
 
-            // ── ÉTAPE 7 : Envoyer email avec mot de passe temp ──
             await email.EnvoyerEmailInscription(
                 membre.Email,
                 $"{membre.Prenom} {membre.Nom}",
@@ -124,9 +102,6 @@ namespace backend.Services.Admin
             return MapToDto(membre);
         }
 
-        // ════════════════════════════════════════════════
-        // Liste membres avec recherche
-        // ════════════════════════════════════════════════
         public async Task<List<MembreResponseDto>> GetAllMembres(string? search = null)
         {
             var query = db.Membres.AsQueryable();
@@ -138,7 +113,7 @@ namespace backend.Services.Admin
                     m.Nom.ToLower().Contains(s) ||
                     m.Prenom.ToLower().Contains(s) ||
                     m.Email.ToLower().Contains(s) ||
-                    m.IdSalleSport.ToLower().Contains(s)); // ← recherche par ID aussi
+                    m.IdSalleSport.ToLower().Contains(s));
             }
 
             return await query
@@ -146,7 +121,7 @@ namespace backend.Services.Admin
                 .Select(m => new MembreResponseDto
                 {
                     Id = m.Id,
-                    IdSalleSport = m.IdSalleSport,   // ← inclure dans la réponse
+                    IdSalleSport = m.IdSalleSport,   
                     Nom = m.Nom,
                     Prenom = m.Prenom,
                     Email = m.Email,
@@ -155,20 +130,17 @@ namespace backend.Services.Admin
                     Poids = m.Poids,
                     PhotoProfile = m.PhotoProfile,
                     DateInscription = m.DateInscription,
-                    //NomComplet = $"{m.Prenom} {m.Nom}"
+                  
                 })
                 .ToListAsync();
         }
 
-        // ════════════════════════════════════════════════
-        // Supprimer un membre
-        // ════════════════════════════════════════════════
+      
         public async Task<bool> SupprimerMembre(int id)
         {
             var membre = await db.Membres.FindAsync(id);
             if (membre == null) return false;
 
-            // Libérer l'ID salle (peut être réutilisé)
             _idsDejaUtilises.Remove(membre.IdSalleSport);
 
             db.Membres.Remove(membre);
@@ -176,9 +148,7 @@ namespace backend.Services.Admin
             return true;
         }
 
-        // ════════════════════════════════════════════════
-        // Voir tous les IDs disponibles (pour debug/admin)
-        // ════════════════════════════════════════════════
+      
         public object GetStatutIds()
         {
             return new
@@ -210,13 +180,11 @@ namespace backend.Services.Admin
             Poids = m.Poids,
             PhotoProfile = m.PhotoProfile,
             DateInscription = m.DateInscription,
-            //NomComplet = $"{m.Prenom} {m.Nom}"
+            
         };
     }
 
-    // ────────────────────────────────────────────────────
-    // Classe résultat de la vérification ID
-    // ────────────────────────────────────────────────────
+
     public class VerificationIdResult
     {
         public bool Valide { get; set; }

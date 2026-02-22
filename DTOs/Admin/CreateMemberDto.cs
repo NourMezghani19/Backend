@@ -7,7 +7,7 @@ namespace backend.DTOs.Admin
         [Required(ErrorMessage = "L'ID salle de sport est obligatoire")]
         [RegularExpression(@"^SPORT-\d{4}-\d{3}$",
         ErrorMessage = "Format ID invalide. Format attendu : SPORT-XXXX-XXX")]
-        public string IdSalleSport { get; set; } = string.Empty;  // ← NOUVEAU
+        public string IdSalleSport { get; set; } = string.Empty;  
 
         [Required(ErrorMessage = "Le nom est obligatoire")]
         [MaxLength(80)]

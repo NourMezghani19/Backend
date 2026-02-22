@@ -13,7 +13,6 @@ namespace backend.Controllers
         private readonly AppDbContext context;
         public UserController(AppDbContext ctx) => this.context = ctx;
 
-        // ── PUT /api/users/{id} → modifierProfil() ──
         [HttpPut("{id}")]
 
         public async Task<IActionResult> ModifierProfil(int id,

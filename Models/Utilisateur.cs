@@ -24,14 +24,11 @@ namespace backend.Models
         [Required]
         public string Prenom { get; set; } = string.Empty;
 
-       // public string? Telephone { get; set; }
 
         public DateTime DateCreation { get; set; } = DateTime.UtcNow;
 
-        // Discriminator pour EF Core (SuperAdmin / Admin / Membre)
         public string Role { get; set; } = "Membre";
 
-        // ── Méthodes du diagramme UML ──
         public abstract void SeConnecter();
         public abstract void SeDeconnecter();
         public abstract void ModifierProfil();

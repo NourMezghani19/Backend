@@ -13,22 +13,21 @@ namespace backend.Controllers.Membre
     [ApiController]
     [Route("api/membres")]
     [Authorize(Roles ="Membre")]
-    // Tout utilisateur connecté peut accéder
-    // (chaque membre ne voit que son propre profil — vérifié dans le service)
+  
     public class MembreController : ControllerBase
     {
-        private readonly MembreService _svc;
-        private readonly AuthService _authSvc;
+        private readonly MembreService svc;
+        private readonly AuthService authSvc;
         public MembreController(MembreService svc, AuthService authSvc)
         {
-            _svc = svc;
-            _authSvc = authSvc;
+            this.svc = svc;
+            this.authSvc = authSvc;
         }
     
         [HttpPut("modifier-mot-de-passe")]
         public async Task<IActionResult> ModifierMotDePasse([FromBody] ChangePasswordDto dto)
         {
-            // Recherche le claim standard NameIdentifier
+         
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
             if (userIdClaim == null)
@@ -38,22 +37,19 @@ namespace backend.Controllers.Membre
 
             int userId = int.Parse(userIdClaim.Value);
 
-            // Appel à votre service de changement de mot de passe
-            var result = await _authSvc.ChangerMotDePasse(userId, dto.AncienMotDePasse, dto.NouveauMotDePasse);
+            
+            var result = await this.authSvc.ChangerMotDePasse(userId, dto.AncienMotDePasse, dto.NouveauMotDePasse);
 
             if (!result)
                 return BadRequest(new { message = "L'ancien mot de passe est incorrect ou utilisateur introuvable." });
 
             return Ok(new { message = "Mot de passe modifié avec succès !" });
         }
-        // ════════════════════════════════════════════════
-        // GET /api/membres/{id}
-        // Voir le profil complet d'un membre
-        // ════════════════════════════════════════════════
+      
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetProfil(int id)
         {
-            var profil = await _svc.GetProfil(id);
+            var profil = await this.svc.GetProfil(id);
             if (profil == null)
                 return NotFound(new { message = $"Membre #{id} non trouvé" });
 
@@ -69,7 +65,7 @@ namespace backend.Controllers.Membre
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _svc.ModifierProfil(id, dto);
+            var result = await this.svc.ModifierProfil(id, dto);
 
             if (result == null)
                 return NotFound(new { message = $"Membre #{id} non trouvé" });
@@ -82,12 +78,7 @@ namespace backend.Controllers.Membre
             });
         }
 
-        // ════════════════════════════════════════════════
-        // POST /api/membres/{id}/photo
-        // Upload la photo de profil du membre
-        // Content-Type: multipart/form-data
-        // Champ : photo (fichier image)
-        // ════════════════════════════════════════════════
+     
         [HttpPost("{id:int}/photo")]
         public async Task<IActionResult> UploadPhoto(
             int id, IFormFile photo)
@@ -98,7 +89,7 @@ namespace backend.Controllers.Membre
                     message = "Aucun fichier reçu. Envoyer un champ 'photo' en multipart/form-data"
                 });
 
-            var (success, message, url) = await _svc.UploadPhotoProfile(id, photo);
+            var (success, message, url) = await this.svc.UploadPhotoProfile(id, photo);
 
             if (!success)
                 return BadRequest(new { message, success = false });
@@ -112,10 +103,6 @@ namespace backend.Controllers.Membre
             });
         }
 
-        // ════════════════════════════════════════════════
-        // DELETE /api/membres/{id}/photo
-        // Supprimer la photo de profil
-        // ════════════════════════════════════════════════
         [HttpDelete("{id:int}/photo")]
         public async Task<IActionResult> SupprimerPhoto(
             int id, [FromServices] AppDbContext db)
