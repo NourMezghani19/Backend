@@ -15,6 +15,6 @@
         public string? PhotoProfile { get; set; }
         public DateTime DateInscription { get; set; }
         public string NomComplet { get; set; } = string.Empty;
-        public float IMC { get; set; }
+        //public float IMC { get; set; }
     }
 }

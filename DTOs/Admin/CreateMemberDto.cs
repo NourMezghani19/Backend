@@ -31,6 +31,6 @@ namespace backend.DTOs.Admin
 
         [Range(20, 300, ErrorMessage = "Poids entre 20 et 300 kg")]
         public float Poids { get; set; }
-        
+
     }
 }

@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260221140755_b1")]
-    partial class b1
+    [Migration("20260222091430_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -85,6 +85,11 @@ namespace backend.Migrations
 
                     b.Property<DateTime>("DateInscription")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("IdSalleSport")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("PhotoProfile")
                         .HasColumnType("nvarchar(max)");

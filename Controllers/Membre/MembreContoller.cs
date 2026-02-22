@@ -24,7 +24,6 @@ namespace backend.Controllers.Membre
             _svc = svc;
             _authSvc = authSvc;
         }
-        [Authorize(Policy = "Membre")]
         [HttpPut("modifier-mot-de-passe")]
         public async Task<IActionResult> ModifierMotDePasse([FromBody] ChangePasswordDto dto)
         {

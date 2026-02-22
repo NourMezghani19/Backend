@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitUtilisateur : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,6 +24,7 @@ namespace backend.Migrations
                     Telephone = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateCreation = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
+                    IdSalleSport = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     Taille = table.Column<float>(type: "real", nullable: true),
                     Poids = table.Column<float>(type: "real", nullable: true),
                     PhotoProfile = table.Column<string>(type: "nvarchar(max)", nullable: true),
