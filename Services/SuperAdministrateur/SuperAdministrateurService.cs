@@ -59,7 +59,7 @@ namespace backend.Services.SuperAdminstrateur
             Email = user.Email,
             Telephone = user.Telephone,
             DateCreation = user.DateCreation,
-        
+         
         };
         public async Task<bool> SupprimerAdministrateur(int adminId)
         {
@@ -79,7 +79,6 @@ namespace backend.Services.SuperAdminstrateur
             return admin == null ? null : MapToDto(admin);
         }
 
-      
         public async Task<List<AdminReponseDto>> GetAllAdmins()
         {
             return await db.Administrateurs
@@ -92,7 +91,7 @@ namespace backend.Services.SuperAdminstrateur
                     Email = a.Email,
                     Telephone = a.Telephone,
                     DateCreation = a.DateCreation,
-                 
+                   
                 })
                 .ToListAsync();
         }
@@ -104,6 +103,7 @@ namespace backend.Services.SuperAdminstrateur
             return admin == null ? null : MapToDto(admin);
         }
 
+     
         public async Task<List<AdminReponseDto>> GetAllSuperAdmins()
         {
             return await db.SuperAdministrateurs

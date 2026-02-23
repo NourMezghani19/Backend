@@ -21,6 +21,7 @@ namespace backend.Services
             this.config = config;
         }
 
+     
         public async Task<AuthResponseDto?> SeConnecter(string email, string motDePasse)
         {
             var user = await db.Utilisateurs
@@ -28,14 +29,12 @@ namespace backend.Services
          u.Email.ToLower() == email.Trim().ToLower());
 
             if (user == null)
-                return null; 
+                return null;
 
-          
             var motDePasseValide = BCrypt.Net.BCrypt.Verify(motDePasse, user.MotDePasse);
             if (!motDePasseValide)
                 return null; 
 
-            
             var expiration = DateTime.UtcNow.AddHours(
                 int.Parse(config["Jwt:ExpiresInHours"] ?? "8"));
 
@@ -54,6 +53,10 @@ namespace backend.Services
             };
         }
 
+      
+       
+
+     
         public async Task<bool> ChangerMotDePasse(
             int userId, string ancienMdp, string nouveauMdp)
         {
@@ -69,7 +72,6 @@ namespace backend.Services
         }
         public string GenererToken(Utilisateur user, DateTime expiration)
         {
-           
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),

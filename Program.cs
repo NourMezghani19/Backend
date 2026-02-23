@@ -12,6 +12,22 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+// ?? 1. Déclarer la politique CORS ??????????????????????
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200") // URL Angular
+            .AllowAnyMethod()   // GET, POST, PUT, DELETE
+            .AllowAnyHeader()   // Content-Type, Authorization...
+            .AllowCredentials(); // Si vous utilisez des cookies
+    });
+});
+
+
+
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration
         .GetConnectionString("DefaultConnection")));
@@ -42,7 +58,6 @@ builder.Services
         };
     });
 
-
 builder.Services.AddAuthorization(opt =>
 {
     opt.AddPolicy("SuperAdministrateur", p => p.RequireRole("SuperAdministrateur"));
@@ -59,7 +74,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "PFA API", Version = "v1" });
-   
+    
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
@@ -88,7 +103,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    /*
+    
     if (!db.Utilisateurs.Any(u => u.Role == "SuperAdministrateur"))
     {
         db.Utilisateurs.Add(new SuperAdministrateur
@@ -103,14 +118,22 @@ using (var scope = app.Services.CreateScope())
         db.SaveChanges();
         Console.WriteLine("SuperAdmin : superadmin@pfa.com / Admin123!");
     }
-    */
-   
+    
+    var uploadsPath = Path.Combine(
+        app.Environment.WebRootPath ?? "wwwroot", "uploads");
+    if (!Directory.Exists(uploadsPath))
+    {
+        Directory.CreateDirectory(uploadsPath);
+        Console.WriteLine("Dossier uploads créé");
+    }
 }
 
-app.UseSwagger();
-app.UseSwaggerUI();
+
+app.UseCors("AllowAngular");
+//app.UseSwagger();
+//app.UseSwaggerUI();
 app.UseCors("PFA_CORS");
-app.UseAuthentication();  // JWT
+app.UseAuthentication();  
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

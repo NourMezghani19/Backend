@@ -24,7 +24,6 @@ namespace backend.Services.Admin
         "SPORT-2024-010"
     };
 
-  
         private static readonly HashSet<string> _idsDejaUtilises = new();
 
         public AdminService(AppDbContext db, EmailService email)
@@ -33,7 +32,6 @@ namespace backend.Services.Admin
             this.email = email;
         }
 
-       
         public VerificationIdResult VerifierIdSalle(string idSalle)
         {
             if (!_idsSalleValides.Contains(idSalle))
@@ -44,7 +42,6 @@ namespace backend.Services.Admin
                     IdSalle = idSalle
                 };
 
-            
             if (_idsDejaUtilises.Contains(idSalle))
                 return new VerificationIdResult
                 {
@@ -61,13 +58,14 @@ namespace backend.Services.Admin
             };
         }
 
-     
+      
         public async Task<MembreResponseDto> CreerCompteMembre(CreateMembreDto dto)
         {
             var verification = VerifierIdSalle(dto.IdSalleSport);
             if (!verification.Valide)
                 throw new InvalidOperationException(verification.Message);
 
+            
             var existe = await db.Utilisateurs
                 .AnyAsync(u => u.Email.ToLower() == dto.Email.ToLower());
             if (existe)
@@ -94,10 +92,8 @@ namespace backend.Services.Admin
             db.Membres.Add(membre);
             await db.SaveChangesAsync();
 
-            
             _idsDejaUtilises.Add(dto.IdSalleSport);
 
-          
             await email.EnvoyerEmailInscription(
                 membre.Email,
                 $"{membre.Prenom} {membre.Nom}",
@@ -117,7 +113,7 @@ namespace backend.Services.Admin
                     m.Nom.ToLower().Contains(s) ||
                     m.Prenom.ToLower().Contains(s) ||
                     m.Email.ToLower().Contains(s) ||
-                    m.IdSalleSport.ToLower().Contains(s)); 
+                    m.IdSalleSport.ToLower().Contains(s));
             }
 
             return await query
@@ -125,7 +121,7 @@ namespace backend.Services.Admin
                 .Select(m => new MembreResponseDto
                 {
                     Id = m.Id,
-                    IdSalleSport = m.IdSalleSport,  
+                    IdSalleSport = m.IdSalleSport,   
                     Nom = m.Nom,
                     Prenom = m.Prenom,
                     Email = m.Email,
@@ -134,7 +130,7 @@ namespace backend.Services.Admin
                     Poids = m.Poids,
                     PhotoProfile = m.PhotoProfile,
                     DateInscription = m.DateInscription,
-                    
+                  
                 })
                 .ToListAsync();
         }
@@ -152,7 +148,7 @@ namespace backend.Services.Admin
             return true;
         }
 
-       
+      
         public object GetStatutIds()
         {
             return new
@@ -184,8 +180,10 @@ namespace backend.Services.Admin
             Poids = m.Poids,
             PhotoProfile = m.PhotoProfile,
             DateInscription = m.DateInscription,
+            
         };
     }
+
 
     public class VerificationIdResult
     {

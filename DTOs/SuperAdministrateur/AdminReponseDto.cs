@@ -8,6 +8,6 @@
         public string Email { get; set; } = string.Empty;
         public string? Telephone { get; set; }
         public DateTime DateCreation { get; set; }
-  
+       
     }
 }

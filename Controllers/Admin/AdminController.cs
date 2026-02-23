@@ -16,21 +16,17 @@ namespace backend.Controllers.Admin
         {
             this.svc = svc;
         }
-
-        
         [HttpGet("verifier-id/{idSalle}")]
         public IActionResult VerifierIdSalle(string idSalle)
         {
             var result = svc.VerifierIdSalle(idSalle);
             return result.Valide ? Ok(result) : BadRequest(result);
         }
-
         [HttpGet("ids-statut")]
         public IActionResult GetStatutIds()
         {
             return Ok(svc.GetStatutIds());
         }
-
         [HttpGet("membres")]
         public async Task<IActionResult> GetMembres([FromQuery] string? search = null)
         {
@@ -42,7 +38,6 @@ namespace backend.Controllers.Admin
                 membres
             });
         }
-
 
         [HttpPost("membres")]
         public async Task<IActionResult> CreerMembre([FromBody] CreateMembreDto dto)

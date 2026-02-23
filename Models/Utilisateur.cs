@@ -21,9 +21,7 @@ namespace backend.Models
 
         [Required]
         public string Prenom { get; set; } = string.Empty;
-        [RegularExpression(@"^\d{8}$",
-            ErrorMessage = "Le téléphone doit contenir exactement 8 chiffres")]
-        public string? Telephone { get; set; }
+
 
         public DateTime DateCreation { get; set; } = DateTime.UtcNow;
 
