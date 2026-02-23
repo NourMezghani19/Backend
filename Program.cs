@@ -12,6 +12,22 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+// ── 1. Déclarer la politique CORS ──────────────────────
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200") // URL Angular
+            .AllowAnyMethod()   // GET, POST, PUT, DELETE
+            .AllowAnyHeader()   // Content-Type, Authorization...
+            .AllowCredentials(); // Si vous utilisez des cookies
+    });
+});
+
+
+
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration
         .GetConnectionString("DefaultConnection")));
@@ -112,8 +128,10 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.UseSwagger();
-app.UseSwaggerUI();
+
+app.UseCors("AllowAngular");
+//app.UseSwagger();
+//app.UseSwaggerUI();
 app.UseCors("PFA_CORS");
 app.UseAuthentication();  
 app.UseAuthorization();
