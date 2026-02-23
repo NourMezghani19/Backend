@@ -30,7 +30,7 @@ namespace backend.Data
             modelBuilder.Entity<Utilisateur>()
               .HasIndex(u => u.Telephone)
               .IsUnique()
-              .HasFilter("[Telephone] IS NOT NULL")   
+              .HasFilter("[Telephone] IS NOT NULL")  
               .HasDatabaseName("IX_Utilisateurs_Telephone"); ;
         }
     }

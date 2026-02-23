@@ -12,7 +12,7 @@ namespace backend.Services.MembreServices
 
         private static readonly string[] allowedExts =
             { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
-        private const long MaxFileSize = 5 * 1024 * 1024;
+        private const long MaxFileSize = 5 * 1024 * 1024; 
 
         public MembreService(AppDbContext db, IWebHostEnvironment env)
         {
@@ -20,15 +20,16 @@ namespace backend.Services.MembreServices
             this.env = env;
         }
 
+
         public async Task<MembreProfilDto?> GetProfil(int id)
         {
-            var m = await db.Membres.FindAsync(id);
+            var m = await this.db.Membres.FindAsync(id);
             return m == null ? null : MapToDto(m);
         }
 
         public async Task<MembreProfilDto?> ModifierProfil(int id, UpdateMembreDto dto)
         {
-            var m = await db.Membres.FindAsync(id);
+            var m = await this.db.Membres.FindAsync(id);
             if (m == null) return null;
 
             m.Nom = dto.Nom.Trim();
@@ -37,7 +38,7 @@ namespace backend.Services.MembreServices
             m.Taille = dto.Taille;
             m.Poids = dto.Poids;
 
-            await db.SaveChangesAsync();
+            await this.db.SaveChangesAsync();
             return MapToDto(m);
         }
 
@@ -55,7 +56,7 @@ namespace backend.Services.MembreServices
 
             return (true, "Mot de passe modifié avec succès");
         }
-
+  
         public async Task<(bool success, string message, string? url)>
             UploadPhotoProfile(int id, IFormFile photo)
         {
@@ -98,6 +99,7 @@ namespace backend.Services.MembreServices
             return (true, "Photo uploadée avec succès ✓", m.PhotoProfile);
         }
 
+       
         private static string CategoriserIMC(float imc) => imc switch
         {
             < 18.5f => "Insuffisance pondérale",

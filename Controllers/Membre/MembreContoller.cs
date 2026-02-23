@@ -13,7 +13,7 @@ namespace backend.Controllers.Membre
     [ApiController]
     [Route("api/membres")]
     [Authorize(Roles ="Membre")]
-    
+  
     public class MembreController : ControllerBase
     {
         private readonly MembreService svc;
@@ -27,6 +27,7 @@ namespace backend.Controllers.Membre
         [HttpPut("modifier-mot-de-passe")]
         public async Task<IActionResult> ModifierMotDePasse([FromBody] ChangePasswordDto dto)
         {
+         
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
             if (userIdClaim == null)
@@ -36,18 +37,19 @@ namespace backend.Controllers.Membre
 
             int userId = int.Parse(userIdClaim.Value);
 
-            var result = await authSvc.ChangerMotDePasse(userId, dto.AncienMotDePasse, dto.NouveauMotDePasse);
+            
+            var result = await this.authSvc.ChangerMotDePasse(userId, dto.AncienMotDePasse, dto.NouveauMotDePasse);
 
             if (!result)
                 return BadRequest(new { message = "L'ancien mot de passe est incorrect ou utilisateur introuvable." });
 
             return Ok(new { message = "Mot de passe modifié avec succès !" });
         }
-        
+      
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetProfil(int id)
         {
-            var profil = await svc.GetProfil(id);
+            var profil = await this.svc.GetProfil(id);
             if (profil == null)
                 return NotFound(new { message = $"Membre #{id} non trouvé" });
 
@@ -63,7 +65,7 @@ namespace backend.Controllers.Membre
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await svc.ModifierProfil(id, dto);
+            var result = await this.svc.ModifierProfil(id, dto);
 
             if (result == null)
                 return NotFound(new { message = $"Membre #{id} non trouvé" });
@@ -76,7 +78,7 @@ namespace backend.Controllers.Membre
             });
         }
 
-        
+     
         [HttpPost("{id:int}/photo")]
         public async Task<IActionResult> UploadPhoto(
             int id, IFormFile photo)
@@ -87,7 +89,7 @@ namespace backend.Controllers.Membre
                     message = "Aucun fichier reçu. Envoyer un champ 'photo' en multipart/form-data"
                 });
 
-            var (success, message, url) = await svc.UploadPhotoProfile(id, photo);
+            var (success, message, url) = await this.svc.UploadPhotoProfile(id, photo);
 
             if (!success)
                 return BadRequest(new { message, success = false });
@@ -101,7 +103,6 @@ namespace backend.Controllers.Membre
             });
         }
 
-        
         [HttpDelete("{id:int}/photo")]
         public async Task<IActionResult> SupprimerPhoto(
             int id, [FromServices] AppDbContext db)

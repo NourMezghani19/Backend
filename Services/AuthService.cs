@@ -21,6 +21,7 @@ namespace backend.Services
             this.config = config;
         }
 
+     
         public async Task<AuthResponseDto?> SeConnecter(string email, string motDePasse)
         {
             var user = await db.Utilisateurs
@@ -52,6 +53,10 @@ namespace backend.Services
             };
         }
 
+      
+       
+
+     
         public async Task<bool> ChangerMotDePasse(
             int userId, string ancienMdp, string nouveauMdp)
         {

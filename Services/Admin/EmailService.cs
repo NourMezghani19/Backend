@@ -14,6 +14,7 @@ namespace backend.Services.Admin
             this.logger = logger;
         }
 
+
         public async Task<bool> EnvoyerEmailInscription(
             string destinataire,
             string nomComplet,
@@ -51,6 +52,7 @@ namespace backend.Services.Admin
                 return false;
             }
         }
+
 
         private static string BuildEmailBody(
             string nomComplet,

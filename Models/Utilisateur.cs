@@ -24,6 +24,7 @@ namespace backend.Models
         [Required]
         public string Prenom { get; set; } = string.Empty;
 
+
         public DateTime DateCreation { get; set; } = DateTime.UtcNow;
 
         public string Role { get; set; } = "Membre";

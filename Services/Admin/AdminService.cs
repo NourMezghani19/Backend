@@ -32,7 +32,6 @@ namespace backend.Services.Admin
             this.email = email;
         }
 
-
         public VerificationIdResult VerifierIdSalle(string idSalle)
         {
             if (!_idsSalleValides.Contains(idSalle))
@@ -59,13 +58,14 @@ namespace backend.Services.Admin
             };
         }
 
-
+      
         public async Task<MembreResponseDto> CreerCompteMembre(CreateMembreDto dto)
         {
             var verification = VerifierIdSalle(dto.IdSalleSport);
             if (!verification.Valide)
                 throw new InvalidOperationException(verification.Message);
 
+            
             var existe = await db.Utilisateurs
                 .AnyAsync(u => u.Email.ToLower() == dto.Email.ToLower());
             if (existe)
@@ -113,7 +113,7 @@ namespace backend.Services.Admin
                     m.Nom.ToLower().Contains(s) ||
                     m.Prenom.ToLower().Contains(s) ||
                     m.Email.ToLower().Contains(s) ||
-                    m.IdSalleSport.ToLower().Contains(s)); 
+                    m.IdSalleSport.ToLower().Contains(s));
             }
 
             return await query
@@ -121,7 +121,7 @@ namespace backend.Services.Admin
                 .Select(m => new MembreResponseDto
                 {
                     Id = m.Id,
-                    IdSalleSport = m.IdSalleSport,  
+                    IdSalleSport = m.IdSalleSport,   
                     Nom = m.Nom,
                     Prenom = m.Prenom,
                     Email = m.Email,
@@ -130,10 +130,12 @@ namespace backend.Services.Admin
                     Poids = m.Poids,
                     PhotoProfile = m.PhotoProfile,
                     DateInscription = m.DateInscription,
+                  
                 })
                 .ToListAsync();
         }
 
+      
         public async Task<bool> SupprimerMembre(int id)
         {
             var membre = await db.Membres.FindAsync(id);
@@ -146,6 +148,7 @@ namespace backend.Services.Admin
             return true;
         }
 
+      
         public object GetStatutIds()
         {
             return new
@@ -177,8 +180,10 @@ namespace backend.Services.Admin
             Poids = m.Poids,
             PhotoProfile = m.PhotoProfile,
             DateInscription = m.DateInscription,
+            
         };
     }
+
 
     public class VerificationIdResult
     {
