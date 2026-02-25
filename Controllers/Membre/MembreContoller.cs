@@ -78,10 +78,10 @@ namespace backend.Controllers.Membre
             });
         }
 
-     
+
         [HttpPost("{id:int}/photo")]
         public async Task<IActionResult> UploadPhoto(
-            int id, IFormFile photo)
+                int id, [FromForm] IFormFile photo)
         {
             if (photo == null)
                 return BadRequest(new

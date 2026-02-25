@@ -56,50 +56,60 @@ namespace backend.Services.MembreServices
 
             return (true, "Mot de passe modifié avec succès");
         }
-  
+
         public async Task<(bool success, string message, string? url)>
-            UploadPhotoProfile(int id, IFormFile photo)
+    UploadPhotoProfile(int id, IFormFile photo)
         {
             var m = await db.Membres.FindAsync(id);
-            if (m == null)
-                return (false, $"Membre #{id} non trouvé", null);
+            if (m == null) return (false, $"Membre #{id} non trouvé", null);
 
-            if (photo.Length == 0)
-                return (false, "Fichier vide", null);
-
-            if (photo.Length > MaxFileSize)
-                return (false, "Fichier trop grand (max 5 MB)", null);
+            if (photo.Length == 0) return (false, "Fichier vide", null);
+            if (photo.Length > MaxFileSize) return (false, "Fichier trop grand (max 5 MB)", null);
 
             var ext = Path.GetExtension(photo.FileName).ToLowerInvariant();
             if (!allowedExts.Contains(ext))
-                return (false, $"Extension non autorisée. Autorisées : {string.Join(", ", allowedExts)}", null);
+                return (false, "Extension non autorisée", null);
 
+            // 1. GESTION DE L'ANCIENNE PHOTO (Protection contre le verrouillage)
             if (!string.IsNullOrEmpty(m.PhotoProfile))
             {
-                var oldPath = Path.Combine(env.WebRootPath, m.PhotoProfile.TrimStart('/'));
-                if (File.Exists(oldPath))
-                    File.Delete(oldPath);
+                try
+                {
+                    var oldPath = Path.Combine(env.WebRootPath, m.PhotoProfile.TrimStart('/'));
+                    if (File.Exists(oldPath))
+                    {
+                        // Optionnel : On peut renommer le fichier avant de supprimer pour "casser" le lien
+                        File.Delete(oldPath);
+                    }
+                }
+                catch (IOException)
+                {
+                    // Si le fichier est utilisé, on ignore l'erreur pour ne pas bloquer l'upload
+                    // Le fichier restera sur le serveur mais ne sera plus référencé en BDD
+                }
             }
 
+            // 2. PRÉPARATION DU NOUVEAU FICHIER
             var uploadsDir = Path.Combine(env.WebRootPath, "uploads");
-            if (!Directory.Exists(uploadsDir))
-                Directory.CreateDirectory(uploadsDir);
+            if (!Directory.Exists(uploadsDir)) Directory.CreateDirectory(uploadsDir);
 
             var fileName = $"membre_{id}_{Guid.NewGuid():N}{ext}";
             var filePath = Path.Combine(uploadsDir, fileName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            // 3. ECRITURE (Utilisation de 'using' pour garantir la fermeture du flux)
+            using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 await photo.CopyToAsync(stream);
+                await stream.FlushAsync();
             }
 
+            // 4. MISE À JOUR BDD
             m.PhotoProfile = $"/uploads/{fileName}";
             await db.SaveChangesAsync();
 
             return (true, "Photo uploadée avec succès ✓", m.PhotoProfile);
         }
 
-       
         private static string CategoriserIMC(float imc) => imc switch
         {
             < 18.5f => "Insuffisance pondérale",
