@@ -6,6 +6,8 @@ using backend.Services.SuperAdminstrateur;
 namespace backend.Controllers;
 
 [ApiController]
+[Route("api/superadmin")]
+
 [Authorize(Roles = "SuperAdministrateur")]
 // Seul le SuperAdmin peut accéder
 public class SuperAdminController : ControllerBase
@@ -35,7 +37,7 @@ public class SuperAdminController : ControllerBase
             : Ok(admin);
     }
 
-    [HttpGet("superadministrateur")]
+    [HttpGet("superadmin")]
     public async Task<IActionResult> GetSuperAdmins()
     {
         var superAdmins = await svc.GetAllSuperAdmins();
@@ -43,7 +45,7 @@ public class SuperAdminController : ControllerBase
     }
 
    
-    [HttpGet("superadministrateur/{id:int}")]
+    [HttpGet("superadmin/{id:int}")]
     public async Task<IActionResult> GetSuperAdmin(int id)
     {
         var superAdmin = await svc.GetSuperAdminById(id);
