@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace backend.DTOs.Admin
 {
@@ -16,6 +17,9 @@ namespace backend.DTOs.Admin
         [Required(ErrorMessage = "Le prénom est obligatoire")]
         [MaxLength(80)]
         public string Prenom { get; set; } = string.Empty;
+        [JsonPropertyName("genre")]
+
+        public string genre { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "L'email est obligatoire")]
         [EmailAddress(ErrorMessage = "Format email invalide")]

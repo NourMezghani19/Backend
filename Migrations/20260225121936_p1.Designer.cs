@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260222094250_email_et_telephone_corriger")]
-    partial class email_et_telephone_corriger
+    [Migration("20260225121936_p1")]
+    partial class p1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -59,6 +59,10 @@ namespace backend.Migrations
 
                     b.Property<string>("Telephone")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("genre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

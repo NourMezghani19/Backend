@@ -5,6 +5,7 @@ using backend.Services;
 using backend.Services.MembreServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace backend.Controllers.Membre
@@ -115,6 +116,25 @@ namespace backend.Controllers.Membre
             await db.SaveChangesAsync();
 
             return Ok(new { message = "Photo supprimée ✓", success = true });
+        }
+        [HttpGet("stats")]
+        [AllowAnonymous] // temporaire pour test
+        public async Task<IActionResult> GetStats([FromServices] AppDbContext db)
+        {
+            // Nombre hommes / femmes
+            var hommes = await db.Membres.CountAsync(m => m.genre == "H");
+            var femmes = await db.Membres.CountAsync(m => m.genre == "F");
+
+            // Nombre total
+            var total = hommes + femmes;
+
+            // Création par mois (sur l'année en cours par exemple)
+            var parMois = await db.Membres
+                .GroupBy(m => m.DateInscription.Month)
+                .Select(g => new { mois = g.Key, count = g.Count() })
+                .ToListAsync();
+
+            return Ok(new { hommes, femmes, total, parMois });
         }
     }
 }

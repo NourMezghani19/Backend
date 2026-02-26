@@ -34,31 +34,34 @@ namespace backend.Services.Admin
 
         public VerificationIdResult VerifierIdSalle(string idSalle)
         {
+            idSalle = idSalle.Trim().ToUpper();
+
             if (!_idsSalleValides.Contains(idSalle))
                 return new VerificationIdResult
                 {
                     Valide = false,
-                    Message = $"ID '{idSalle}' non reconnu par la salle de sport",
+                    Message = "ID non reconnu",
                     IdSalle = idSalle
                 };
 
-            if (_idsDejaUtilises.Contains(idSalle))
+            var dejaEnBase = db.Membres.Any(m => m.IdSalleSport == idSalle);
+
+            if (dejaEnBase)
                 return new VerificationIdResult
                 {
                     Valide = false,
-                    Message = $"ID '{idSalle}' a déjà été utilisé pour créer un compte",
+                    Message = "ID déjà utilisé",
                     IdSalle = idSalle
                 };
 
             return new VerificationIdResult
             {
                 Valide = true,
-                Message = $"ID '{idSalle}' valide — vous pouvez créer le compte",
+                Message = "ID valide",
                 IdSalle = idSalle
             };
         }
 
-      
         public async Task<MembreResponseDto> CreerCompteMembre(CreateMembreDto dto)
         {
             var verification = VerifierIdSalle(dto.IdSalleSport);
@@ -79,6 +82,7 @@ namespace backend.Services.Admin
                 IdSalleSport = dto.IdSalleSport,
                 Nom = dto.Nom.Trim(),
                 Prenom = dto.Prenom.Trim(),
+                genre = dto.genre == "Homme" ? "H" : "F",
                 Email = dto.Email.ToLower().Trim(),
                 MotDePasse = BCrypt.Net.BCrypt.HashPassword(motDePasseTemp),
                 Telephone = dto.Telephone?.Trim(),
@@ -124,6 +128,8 @@ namespace backend.Services.Admin
                     IdSalleSport = m.IdSalleSport,   
                     Nom = m.Nom,
                     Prenom = m.Prenom,
+                    genre = m.genre,   // ✅ AJOUT
+
                     Email = m.Email,
                     Telephone = m.Telephone,
                     Taille = m.Taille,
@@ -174,6 +180,8 @@ namespace backend.Services.Admin
             IdSalleSport = m.IdSalleSport,
             Nom = m.Nom,
             Prenom = m.Prenom,
+            genre = m.genre,   // ✅ AJOUT
+
             Email = m.Email,
             Telephone = m.Telephone,
             Taille = m.Taille,

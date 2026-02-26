@@ -8,6 +8,8 @@
 
         public string Nom { get; set; } = string.Empty;
         public string Prenom { get; set; } = string.Empty;
+        public string genre { get; set; } = string.Empty;
+
         public string Email { get; set; } = string.Empty;
         public string? Telephone { get; set; }
         public float Taille { get; set; }

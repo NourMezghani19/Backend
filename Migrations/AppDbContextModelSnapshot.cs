@@ -57,6 +57,10 @@ namespace backend.Migrations
                     b.Property<string>("Telephone")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("genre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")

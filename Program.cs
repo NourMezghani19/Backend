@@ -118,7 +118,21 @@ using (var scope = app.Services.CreateScope())
         db.SaveChanges();
         Console.WriteLine("SuperAdmin : superadmin@pfa.com / Admin123!");
     }
-    
+    if (!db.Utilisateurs.Any(u => u.Role == "Administrateur"))
+    {
+        db.Utilisateurs.Add(new Administrateur
+        {
+            Nom = "Admin",
+            Prenom = "Normal",
+            Email = "admin@gmail.com",
+            MotDePasse = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            Role = "Administrateur",
+            DateCreation = DateTime.UtcNow
+        });
+        db.SaveChanges();
+        Console.WriteLine("Administrateur créé : admin@gmail.com / Admin123!");
+    }
+
     var uploadsPath = Path.Combine(
         app.Environment.WebRootPath ?? "wwwroot", "uploads");
     if (!Directory.Exists(uploadsPath))

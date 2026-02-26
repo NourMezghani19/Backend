@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers.Admin
 {
-
+    [ApiController]
+    [Route("api/Administrateur")]
     [Authorize(Roles = "Administrateur")]
     public class AdminController : ControllerBase
     {

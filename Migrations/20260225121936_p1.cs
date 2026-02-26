@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitUtilisateur : Migration
+    public partial class p1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,10 +20,12 @@ namespace backend.Migrations
                     Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     MotDePasse = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Nom = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Telephone = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Prenom = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Telephone = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    genre = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DateCreation = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
+                    IdSalleSport = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     Taille = table.Column<float>(type: "real", nullable: true),
                     Poids = table.Column<float>(type: "real", nullable: true),
                     PhotoProfile = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -39,6 +41,13 @@ namespace backend.Migrations
                 table: "Utilisateurs",
                 column: "Email",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Utilisateurs_Telephone",
+                table: "Utilisateurs",
+                column: "Telephone",
+                unique: true,
+                filter: "[Telephone] IS NOT NULL");
         }
 
         /// <inheritdoc />

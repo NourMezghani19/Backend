@@ -18,11 +18,14 @@ namespace backend.Models
 
         [Required]
         public string Nom { get; set; } = string.Empty;
+        [RegularExpression(@"^\d{8}$",
+          ErrorMessage = "Le téléphone doit contenir exactement 8 chiffres")]
+        public string? Telephone { get; set; }
 
         [Required]
         public string Prenom { get; set; } = string.Empty;
-
-
+        [Required]
+        public string genre { get; set; } = string.Empty;
         public DateTime DateCreation { get; set; } = DateTime.UtcNow;
 
         public string Role { get; set; } = "Membre";
