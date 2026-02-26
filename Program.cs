@@ -116,7 +116,7 @@ using (var scope = app.Services.CreateScope())
             DateCreation = DateTime.UtcNow
         });
         db.SaveChanges();
-        Console.WriteLine("SuperAdmin : superadmin@pfa.com / Admin123!");
+        //Console.WriteLine("SuperAdmin : superadmin@pfa.com / Admin123!");
     }
     if (!db.Utilisateurs.Any(u => u.Role == "Administrateur"))
     {
@@ -144,8 +144,8 @@ using (var scope = app.Services.CreateScope())
 
 
 app.UseCors("AllowAngular");
-//app.UseSwagger();
-//app.UseSwaggerUI();
+app.UseSwagger();
+app.UseSwaggerUI();
 app.UseCors("PFA_CORS");
 app.UseAuthentication();  
 app.UseAuthorization();
