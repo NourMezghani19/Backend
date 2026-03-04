@@ -1,8 +1,11 @@
-﻿namespace backend.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace backend.DTOs
 {
     public class LoginDto
     {
-        public string Email { get; set; } = null!;
-        public string MotDePasse { get; set; } = null!;
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
     }
 }

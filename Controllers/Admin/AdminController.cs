@@ -1,5 +1,4 @@
 ﻿using backend.DTOs.Admin;
-using backend.Models;
 using backend.Services.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,26 +7,23 @@ namespace backend.Controllers.Admin
 {
     [ApiController]
     [Route("api/Administrateur")]
-    [Authorize(Roles = "Administrateur")]
+    [Authorize(Roles = "Administrateur,SuperAdministrateur")]
     public class AdminController : ControllerBase
     {
         private readonly AdminService svc;
 
-        public AdminController(AdminService svc)
-        {
-            this.svc = svc;
-        }
+        public AdminController(AdminService svc) => this.svc = svc;
+
         [HttpGet("verifier-id/{idSalle}")]
         public IActionResult VerifierIdSalle(string idSalle)
         {
             var result = svc.VerifierIdSalle(idSalle);
             return result.Valide ? Ok(result) : BadRequest(result);
         }
+
         [HttpGet("ids-statut")]
-        public IActionResult GetStatutIds()
-        {
-            return Ok(svc.GetStatutIds());
-        }
+        public IActionResult GetStatutIds() => Ok(svc.GetStatutIds());
+
         [HttpGet("membres")]
         public async Task<IActionResult> GetMembres([FromQuery] string? search = null)
         {
@@ -45,15 +41,18 @@ namespace backend.Controllers.Admin
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
             try
             {
                 var result = await svc.CreerCompteMembre(dto);
-                return Created($"/api/admin/membres/{result.Id}", new
-                {
-                    message = $"Compte membre '{result.Nom} {result.Prenom}' créé. Email envoyé ✓",
-                    success = true,
-                    membre = result
-                });
+                return Created(
+                    $"/api/Administrateur/membres/{result.Id}",
+                    new
+                    {
+                        message = $"Compte '{result.Prenom} {result.Nom}' créé. Email envoyé ✓",
+                        success = true,
+                        membre = result
+                    });
             }
             catch (InvalidOperationException ex)
             {
@@ -61,6 +60,13 @@ namespace backend.Controllers.Admin
             }
         }
 
+        [HttpDelete("membres/{id}")]
+        public async Task<IActionResult> SupprimerMembre(int id)
+        {
+            var ok = await svc.SupprimerMembre(id);
+            return ok
+                ? Ok(new { message = "Membre supprimé", success = true })
+                : NotFound(new { message = "Membre introuvable", success = false });
+        }
     }
 }
-

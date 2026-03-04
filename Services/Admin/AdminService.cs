@@ -11,20 +11,12 @@ namespace backend.Services.Admin
         private readonly EmailService email;
 
         private static readonly HashSet<string> _idsSalleValides = new()
-    {
-        "SPORT-2024-001",
-        "SPORT-2024-002",
-        "SPORT-2024-003",
-        "SPORT-2024-004",
-        "SPORT-2024-005",
-        "SPORT-2024-006",
-        "SPORT-2024-007",
-        "SPORT-2024-008",
-        "SPORT-2024-009",
-        "SPORT-2024-010"
-    };
-
-        private static readonly HashSet<string> _idsDejaUtilises = new();
+        {
+            "SPORT-2024-001", "SPORT-2024-002", "SPORT-2024-003",
+            "SPORT-2024-004", "SPORT-2024-005", "SPORT-2024-006",
+            "SPORT-2024-007", "SPORT-2024-008", "SPORT-2024-009",
+            "SPORT-2024-010"
+        };
 
         public AdminService(AppDbContext db, EmailService email)
         {
@@ -45,7 +37,6 @@ namespace backend.Services.Admin
                 };
 
             var dejaEnBase = db.Membres.Any(m => m.IdSalleSport == idSalle);
-
             if (dejaEnBase)
                 return new VerificationIdResult
                 {
@@ -57,7 +48,7 @@ namespace backend.Services.Admin
             return new VerificationIdResult
             {
                 Valide = true,
-                Message = "ID valide",
+                Message = "ID valide ✓",
                 IdSalle = idSalle
             };
         }
@@ -68,9 +59,8 @@ namespace backend.Services.Admin
             if (!verification.Valide)
                 throw new InvalidOperationException(verification.Message);
 
-            
             var existe = await db.Utilisateurs
-                .AnyAsync(u => u.Email.ToLower() == dto.Email.ToLower());
+                .AnyAsync(u => u.Email.ToLower() == dto.Email.ToLower().Trim());
             if (existe)
                 throw new InvalidOperationException(
                     $"Un compte avec l'email '{dto.Email}' existe déjà");
@@ -79,16 +69,16 @@ namespace backend.Services.Admin
 
             var membre = new Membre
             {
-                IdSalleSport = dto.IdSalleSport,
+                IdSalleSport = dto.IdSalleSport.Trim().ToUpper(),
                 Nom = dto.Nom.Trim(),
                 Prenom = dto.Prenom.Trim(),
-                genre = dto.genre == "Homme" ? "H" : "F",
+                genre = dto.genre?.Trim().ToLower(),
                 Email = dto.Email.ToLower().Trim(),
                 MotDePasse = BCrypt.Net.BCrypt.HashPassword(motDePasseTemp),
-                Telephone = dto.Telephone?.Trim(),
-                Taille = dto.Taille,
-                Poids = dto.Poids,
                 Role = "Membre",
+                Telephone = dto.Telephone?.Trim(),  
+                Taille = dto.Taille,             
+                Poids = dto.Poids,           
                 DateCreation = DateTime.UtcNow,
                 DateInscription = DateTime.UtcNow
             };
@@ -96,12 +86,10 @@ namespace backend.Services.Admin
             db.Membres.Add(membre);
             await db.SaveChangesAsync();
 
-            _idsDejaUtilises.Add(dto.IdSalleSport);
-
             await email.EnvoyerEmailInscription(
                 membre.Email,
                 $"{membre.Prenom} {membre.Nom}",
-                motDePasseTemp);
+                motDePasseTemp);  
 
             return MapToDto(membre);
         }
@@ -112,7 +100,7 @@ namespace backend.Services.Admin
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                var s = search.ToLower();
+                var s = search.ToLower().Trim();
                 query = query.Where(m =>
                     m.Nom.ToLower().Contains(s) ||
                     m.Prenom.ToLower().Contains(s) ||
@@ -125,44 +113,47 @@ namespace backend.Services.Admin
                 .Select(m => new MembreResponseDto
                 {
                     Id = m.Id,
-                    IdSalleSport = m.IdSalleSport,   
+                    IdSalleSport = m.IdSalleSport,
                     Nom = m.Nom,
                     Prenom = m.Prenom,
-                    genre = m.genre,   // ✅ AJOUT
-
+                    genre = m.genre,
                     Email = m.Email,
                     Telephone = m.Telephone,
                     Taille = m.Taille,
                     Poids = m.Poids,
                     PhotoProfile = m.PhotoProfile,
-                    DateInscription = m.DateInscription,
-                  
+                    DateInscription = m.DateInscription
                 })
                 .ToListAsync();
         }
 
-      
         public async Task<bool> SupprimerMembre(int id)
         {
             var membre = await db.Membres.FindAsync(id);
             if (membre == null) return false;
-
-            _idsDejaUtilises.Remove(membre.IdSalleSport);
 
             db.Membres.Remove(membre);
             await db.SaveChangesAsync();
             return true;
         }
 
-      
         public object GetStatutIds()
         {
+            var idsUtilisesEnBase = db.Membres
+                .Select(m => m.IdSalleSport)
+                .ToHashSet();
+
+            var idsDisponibles = _idsSalleValides
+                .Except(idsUtilisesEnBase)
+                .OrderBy(x => x)
+                .ToList();
+
             return new
             {
                 totalIds = _idsSalleValides.Count,
-                idsUtilises = _idsDejaUtilises.Count,
-                idsDisponibles = _idsSalleValides.Count - _idsDejaUtilises.Count,
-                listeDisponibles = _idsSalleValides.Except(_idsDejaUtilises).ToList()
+                idsUtilises = idsUtilisesEnBase.Count,
+                idsDisponibles = idsDisponibles.Count,
+                listeDisponibles = idsDisponibles
             };
         }
 
@@ -180,18 +171,15 @@ namespace backend.Services.Admin
             IdSalleSport = m.IdSalleSport,
             Nom = m.Nom,
             Prenom = m.Prenom,
-            genre = m.genre,   // ✅ AJOUT
-
+            genre = m.genre,
             Email = m.Email,
             Telephone = m.Telephone,
             Taille = m.Taille,
             Poids = m.Poids,
             PhotoProfile = m.PhotoProfile,
-            DateInscription = m.DateInscription,
-            
+            DateInscription = m.DateInscription
         };
     }
-
 
     public class VerificationIdResult
     {

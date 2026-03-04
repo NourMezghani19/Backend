@@ -10,7 +10,7 @@ namespace backend.Services.MembreServices
         private readonly AppDbContext db;
         private readonly IWebHostEnvironment env;
 
-        private static readonly string[] _allowedExts =
+        private static readonly string[] allowedExts =
             { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
         private const long MaxFileSize = 5 * 1024 * 1024; 
 
@@ -56,41 +56,45 @@ namespace backend.Services.MembreServices
 
             return (true, "Mot de passe modifié avec succès");
         }
-  
-        public async Task<(bool success, string message, string? url)>
-            UploadPhotoProfile(int id, IFormFile photo)
+
+        public async Task<(bool success, string message, string? url)>UploadPhotoProfile(int id, IFormFile photo)
         {
             var m = await db.Membres.FindAsync(id);
-            if (m == null)
-                return (false, $"Membre #{id} non trouvé", null);
+            if (m == null) return (false, $"Membre #{id} non trouvé", null);
 
-            if (photo.Length == 0)
-                return (false, "Fichier vide", null);
-
-            if (photo.Length > MaxFileSize)
-                return (false, "Fichier trop grand (max 5 MB)", null);
+            if (photo.Length == 0) return (false, "Fichier vide", null);
+            if (photo.Length > MaxFileSize) return (false, "Fichier trop grand (max 5 MB)", null);
 
             var ext = Path.GetExtension(photo.FileName).ToLowerInvariant();
-            if (!_allowedExts.Contains(ext))
-                return (false, $"Extension non autorisée. Autorisées : {string.Join(", ", _allowedExts)}", null);
+            if (!allowedExts.Contains(ext))
+                return (false, "Extension non autorisée", null);
 
             if (!string.IsNullOrEmpty(m.PhotoProfile))
             {
-                var oldPath = Path.Combine(env.WebRootPath, m.PhotoProfile.TrimStart('/'));
-                if (File.Exists(oldPath))
-                    File.Delete(oldPath);
+                try
+                {
+                    var oldPath = Path.Combine(env.WebRootPath, m.PhotoProfile.TrimStart('/'));
+                    if (File.Exists(oldPath))
+                    {
+                        File.Delete(oldPath);
+                    }
+                }
+                catch (IOException)
+                {
+                   
+                }
             }
 
             var uploadsDir = Path.Combine(env.WebRootPath, "uploads");
-            if (!Directory.Exists(uploadsDir))
-                Directory.CreateDirectory(uploadsDir);
+            if (!Directory.Exists(uploadsDir)) Directory.CreateDirectory(uploadsDir);
 
             var fileName = $"membre_{id}_{Guid.NewGuid():N}{ext}";
             var filePath = Path.Combine(uploadsDir, fileName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 await photo.CopyToAsync(stream);
+                await stream.FlushAsync();
             }
 
             m.PhotoProfile = $"/uploads/{fileName}";
@@ -99,7 +103,6 @@ namespace backend.Services.MembreServices
             return (true, "Photo uploadée avec succès ✓", m.PhotoProfile);
         }
 
-       
         private static string CategoriserIMC(float imc) => imc switch
         {
             < 18.5f => "Insuffisance pondérale",
