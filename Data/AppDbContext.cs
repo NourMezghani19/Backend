@@ -1,5 +1,6 @@
 ﻿using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Crypto.Macs;
 
 
 namespace backend.Data
@@ -12,6 +13,19 @@ namespace backend.Data
         public DbSet<SuperAdministrateur> SuperAdministrateurs { get; set; }
         public DbSet<Administrateur> Administrateurs { get; set; }
         public DbSet<Membre> Membres { get; set; }
+
+        //public DbSet<Coach> Coachs { get; set; }
+
+        //public DbSet<Cours> Cours { get; set; }
+
+        //public DbSet<SessionCours> Sessions { get; set; }
+
+        public DbSet<Reservation> Reservations { get; set; }
+
+        public DbSet<Notification> Notifications { get; set; }
+
+        //public DbSet<EmploiDuTemps> EmploisDuTemps { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

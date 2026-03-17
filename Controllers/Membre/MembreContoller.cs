@@ -79,8 +79,30 @@ namespace backend.Controllers.Membre
             });
         }
 
+         [HttpPost("{id:int}/photo")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadPhoto(int id, IFormFile photo)
+        {
+            if (photo == null)
+                return BadRequest(new
+                {
+                    message = "Aucun fichier reçu. Envoyer un champ 'photo'"
+                });
 
-        [HttpPost("{id:int}/photo")]
+            var (success, message, url) = await this.svc.UploadPhotoProfile(id, photo);
+
+            if (!success)
+                return BadRequest(new { message, success = false });
+
+            return Ok(new
+            {
+                message,
+                success = true,
+                photoUrl = url,
+                fullUrl = $"{Request.Scheme}://{Request.Host}{url}"
+            });
+        }
+       /* [HttpPost("{id:int}/photo")]
         public async Task<IActionResult> UploadPhoto(
                 int id, [FromForm] IFormFile photo)
         {
@@ -103,7 +125,7 @@ namespace backend.Controllers.Membre
                 fullUrl = $"{Request.Scheme}://{Request.Host}{url}"
             });
         }
-
+       */
         [HttpDelete("{id:int}/photo")]
         public async Task<IActionResult> SupprimerPhoto(
             int id, [FromServices] AppDbContext db)
