@@ -40,11 +40,11 @@ builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<SuperAdministrateurService>();
 builder.Services.AddScoped<MembreService>();
-//builder.Services.AddScoped<CoachService>();
-//builder.Services.AddScoped<CoursService>();
+builder.Services.AddScoped<CoachService>();
+builder.Services.AddScoped<CoursService>();
 builder.Services.AddScoped<ReservationService>();
 builder.Services.AddScoped<NotificationService>();
-//builder.Services.AddScoped<EmploiDuTempsService>();
+builder.Services.AddScoped<EmploiDuTempsService>();
 
 // ================= JWT =================
 var jwtKey = builder.Configuration["Jwt:Key"]!;
