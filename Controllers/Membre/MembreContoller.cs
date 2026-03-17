@@ -80,7 +80,7 @@ namespace backend.Controllers.Membre
         }
 
 
-        [HttpPost("{id:int}/photo")]
+        /*[HttpPost("{id:int}/photo")]
         public async Task<IActionResult> UploadPhoto(
                 int id, [FromForm] IFormFile photo)
         {
@@ -102,7 +102,8 @@ namespace backend.Controllers.Membre
                 photoUrl = url,
                 fullUrl = $"{Request.Scheme}://{Request.Host}{url}"
             });
-        }
+        }*/
+
 
         [HttpDelete("{id:int}/photo")]
         public async Task<IActionResult> SupprimerPhoto(

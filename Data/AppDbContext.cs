@@ -1,5 +1,6 @@
 ﻿using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Crypto.Macs;
 
 
 namespace backend.Data
@@ -12,6 +13,10 @@ namespace backend.Data
         public DbSet<SuperAdministrateur> SuperAdministrateurs { get; set; }
         public DbSet<Administrateur> Administrateurs { get; set; }
         public DbSet<Membre> Membres { get; set; }
+        // AppDbContext.cs — ajouter les DbSets
+
+        
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

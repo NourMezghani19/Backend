@@ -27,6 +27,37 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
 );
+// Swagger + JWT
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "My API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter: Bearer {your token}"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AdminService>();
@@ -86,7 +117,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("SuperAdmin : superadmin@gmail.com / Admin123!");
     }
 
-    var membre = db.Utilisateurs
+    /* var membre = db.Utilisateurs
      .FirstOrDefault(u => u.Email == "membre@pfa.com");
 
     if (membre == null)
@@ -110,7 +141,7 @@ using (var scope = app.Services.CreateScope())
 
         db.SaveChanges();
         Console.WriteLine("Membre créé");
-    }
+    }*/
 
     var uploadsPath = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads");
     if (!Directory.Exists(uploadsPath))
@@ -119,6 +150,12 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Dossier uploads créé");
     }
 }
+// Middleware pipeline
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+});
 
 app.UseStaticFiles();
 app.UseCors("AllowAngular");      
