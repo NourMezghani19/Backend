@@ -3,6 +3,7 @@ using backend.Models;
 using backend.Services;
 using backend.Services.Admin;
 using backend.Services.MembreServices;
+using backend.Services.ReservationService;
 using backend.Services.SuperAdminstrateur;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -42,8 +43,8 @@ builder.Services.AddScoped<SuperAdministrateurService>();
 builder.Services.AddScoped<MembreService>();
 builder.Services.AddScoped<CoachService>();
 builder.Services.AddScoped<CoursService>();
-builder.Services.AddScoped<ReservationService>();
-builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<NotificationService>(); 
+builder.Services.AddScoped<ReservationService>();   
 builder.Services.AddScoped<EmploiDuTempsService>();
 
 // ================= JWT =================
@@ -137,6 +138,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+    // === SUPER ADMIN ===
     if (!db.Utilisateurs.Any(u => u.Role == "SuperAdministrateur"))
     {
         db.Utilisateurs.Add(new SuperAdministrateur
@@ -148,36 +150,106 @@ using (var scope = app.Services.CreateScope())
             Role = "SuperAdministrateur",
             DateCreation = DateTime.UtcNow
         });
-
         db.SaveChanges();
         Console.WriteLine("SuperAdmin : superadmin@gmail.com / Admin123!");
     }
 
-    /*var membre = db.Utilisateurs
-     .FirstOrDefault(u => u.Email == "membre@pfa.com");
-
-    if (membre == null)
+    // === MEMBRE DE TEST ===
+    if (!db.Membres.Any())
     {
-        db.Utilisateurs.Add(new Membre
+        db.Membres.Add(new Membre
         {
-            Nom = "Membre",
-            Prenom = "Test",
+            Nom = "Test",
+            Prenom = "Membre",
             Email = "membre@pfa.com",
             MotDePasse = BCrypt.Net.BCrypt.HashPassword("Membre123!"),
             Role = "Membre",
-            Telephone = "75315984",
-            genre = "Homme",
-            IdSalleSport = "SPORT-2024-008",
-            Taille = 170,
-            Poids = 65,
-            PhotoProfile = null,
+            Telephone = "12345678",
+            genre = "Femme",
+            IdSalleSport = "SPORT-2026-001",
+            Taille = 165,
+            Poids = 60,
             DateInscription = DateTime.UtcNow,
             DateCreation = DateTime.UtcNow
         });
-
         db.SaveChanges();
-        Console.WriteLine("Membre créé");
-    }*/
+        Console.WriteLine("Membre de test créé : membre@pfa.com / Membre123!");
+    }
+
+    // === COACH DE TEST ===
+    if (!db.Coachs.Any())
+    {
+        db.Coachs.Add(new Coach
+        {
+            Nom = "Coach",
+            Prenom = "Test",
+            Specialite = "Fitness",
+            Email = "coach@pfa.com",
+            Telephone = "87654321",
+            Disponible = true,
+            DateCreation = DateTime.UtcNow
+        });
+        db.SaveChanges();
+        Console.WriteLine("Coach de test créé : coach@pfa.com / Coach123!");
+    }
+
+    // === COURS ===
+    if (!db.Cours.Any())
+    {
+        var cours1 = new Cours
+        {
+            Nom = "Yoga",
+            Description = "Cours de yoga pour tous",
+            CapaciteMax = 10,
+            Actif = true,
+            Genre = GenreCours.Femme // exemple par défaut
+        };
+
+        var cours2 = new Cours
+        {
+            Nom = "Pilates",
+            Description = "Cours de Pilates pour renforcer le corps",
+            CapaciteMax = 8,
+            Actif = true,
+            Genre = GenreCours.Mixte
+        };
+
+        db.Cours.AddRange(cours1, cours2);
+        db.SaveChanges();
+        Console.WriteLine("Cours par défaut créés : Yoga, Pilates");
+    }
+
+    // === SESSIONS DE COURS ===
+    if (!db.Sessions.Any())
+    {
+        var yoga = db.Cours.First(c => c.Nom == "Yoga");
+        var pilates = db.Cours.First(c => c.Nom == "Pilates");
+        var coach = db.Coachs.First();
+
+        var session1 = new Session_Cours
+        {
+            CoursId = yoga.Id,
+            CoachId = coach.Id,
+            DateHeure = DateTime.UtcNow.AddDays(1).AddHours(9),
+            PlacesDisponibles = yoga.CapaciteMax,
+            Statut = "Planifié"
+        };
+
+        var session2 = new Session_Cours
+        {
+            CoursId = pilates.Id,
+            CoachId = coach.Id,
+            DateHeure = DateTime.UtcNow.AddDays(1).AddHours(11),
+            PlacesDisponibles = pilates.CapaciteMax,
+            Statut = "Planifié"
+        };
+
+        db.Sessions.AddRange(session1, session2);
+        db.SaveChanges();
+        Console.WriteLine("Sessions de cours par défaut créées");
+    }
+
+    // === DOSSIER UPLOADS ===
     var uploadsPath = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads");
     if (!Directory.Exists(uploadsPath))
     {
@@ -185,7 +257,6 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Dossier uploads créé");
     }
 }
-
 
 // ================= MIDDLEWARE =================
 app.UseStaticFiles();

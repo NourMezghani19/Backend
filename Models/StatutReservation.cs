@@ -1,9 +1,9 @@
 ﻿namespace backend.Models
 {
     public enum StatutReservation
-
-    {   Confirmee = 0, 
-        Annulee = 1, 
-        EnAttente = 2 
+    {
+        EnAttente=1,
+        Confirmee=0,
+        Annulee=2
     }
 }
