@@ -1,4 +1,4 @@
-﻿namespace backend.Services
+﻿namespace backend.Services.Reservation
 {
     public class ReservationService
     {

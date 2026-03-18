@@ -8,7 +8,6 @@
         public string Specialite { get; set; }
         public string Email { get; set; }
         public string? Telephone { get; set; }
-        public string? PhotoProfile { get; set; }
         public bool Disponible { get; set; }
         public string? PhotoUrl { get; set; }
         public DateTime DateCreation { get; set; }= DateTime.UtcNow;
