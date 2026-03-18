@@ -7,65 +7,48 @@ using backend.Services.SuperAdminstrateur;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+
+// ================= CORS =================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200") 
+        policy.WithOrigins("http://localhost:4200")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
     });
 });
 
+
+// ================= DATABASE =================
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
 );
-// Swagger + JWT
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new() { Title = "My API", Version = "v1" });
 
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Enter: Bearer {your token}"
-    });
 
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
-        }
-    });
-});
-
+// ================= SERVICES =================
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<SuperAdministrateurService>();
 builder.Services.AddScoped<MembreService>();
+builder.Services.AddScoped<CoachService>();
+builder.Services.AddScoped<CoursService>();
+builder.Services.AddScoped<ReservationService>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<EmploiDuTempsService>();
 
+// ================= JWT =================
 var jwtKey = builder.Configuration["Jwt:Key"]!;
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
@@ -76,10 +59,13 @@ builder.Services
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey =
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 
+
+// ================= AUTHORIZATION =================
 builder.Services.AddAuthorization(opt =>
 {
     opt.AddPolicy("SuperAdministrateur",
@@ -92,12 +78,61 @@ builder.Services.AddAuthorization(opt =>
         p => p.RequireRole("Membre"));
 });
 
+
+// ================= CONTROLLERS =================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
+
+// ================= SWAGGER + JWT =================
+builder.Services.AddSwaggerGen(options =>
+{
+    // Définition JWT
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Gym API",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Entrer le token JWT comme: Bearer {token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
+
+// ================= BUILD =================
 var app = builder.Build();
 
+
+// ================= SWAGGER =================
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+
+// ================= SEED DATA =================
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -113,6 +148,7 @@ using (var scope = app.Services.CreateScope())
             Role = "SuperAdministrateur",
             DateCreation = DateTime.UtcNow
         });
+
         db.SaveChanges();
         Console.WriteLine("SuperAdmin : superadmin@gmail.com / Admin123!");
     }
@@ -150,16 +186,14 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Dossier uploads créé");
     }
 }
-// Middleware pipeline
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-});
 
+
+// ================= MIDDLEWARE =================
 app.UseStaticFiles();
-app.UseCors("AllowAngular");      
-app.UseAuthentication();          
+
+app.UseCors("AllowAngular");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
