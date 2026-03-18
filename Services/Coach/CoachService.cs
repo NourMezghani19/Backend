@@ -15,7 +15,7 @@ namespace backend.Services.Coach
         }
 
         // ── GET ALL ──────────────────────────────────────
-        // ── GET ALL ──────────────────────────────────────
+     
         public async Task<List<CoachResponseDto>> GetAll()
         {
             var coachs = await this.db.Coachs
@@ -72,13 +72,19 @@ namespace backend.Services.Coach
             if (dto.Telephone != null &&
                 await this.db.Coachs.AnyAsync(c => c.Telephone == dto.Telephone.Trim() && c.Id != id))
                 throw new InvalidOperationException("Téléphone déjà utilisé");
-
+            if (dto.Email != null &&
+             await this.db.Coachs.AnyAsync(c => c.Email == dto.Email.ToLower().Trim() && c.Id != id))
+                throw new InvalidOperationException("Email déjà utilisé");
             if (dto.Nom != null) c.Nom = dto.Nom.Trim();
             if (dto.Prenom != null) c.Prenom = dto.Prenom.Trim();
             if (dto.Specialite != null) c.Specialite = dto.Specialite.Trim();
             if (dto.Telephone != null) c.Telephone = dto.Telephone.Trim();
-            if (dto.PhotoUrl != null) c.PhotoUrl = dto.PhotoUrl.Trim();
-            if (dto.Disponible != null) c.Disponible = dto.Disponible.Value;
+            if (dto.Email != null) c.Email = dto.Email.ToLower().Trim();  // ← ajouté
+            if (dto.PhotoUrl != null)
+                c.PhotoUrl = dto.PhotoUrl.Trim();
+            else
+                c.PhotoUrl = null;  // si on veut pouvoir supprimer la photo en envoyant null
+            // if (dto.Disponible != null) c.Disponible = dto.Disponible.Value;
 
             await this.db.SaveChangesAsync();
             return MapToDto(c);
@@ -106,7 +112,8 @@ namespace backend.Services.Coach
             Specialite = c.Specialite,
             Disponible = c.Disponible,
             PhotoUrl = c.PhotoUrl,
-            NbSessions = c.Sessions.Count,
+          //  NbSessions = c.Sessions.Count,
+            NbSessions = 0, // éviter de charger les sessions juste pour compter
             DateCreation = c.DateCreation
         };
     }

@@ -10,7 +10,8 @@ namespace backend.DTOs.Coach
         [RegularExpression(@"^\d{8}$", ErrorMessage = "Le téléphone doit contenir exactement 8 chiffres")]
 
         public string? Telephone { get; set; }
+        public string? Email { get; set; }
         public string? PhotoUrl { get; set; }
-        public bool? Disponible { get; set; }
+      //  public bool? Disponible { get; set; }
     }
 }
