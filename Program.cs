@@ -2,7 +2,9 @@
 using backend.Models;
 using backend.Services;
 using backend.Services.Admin;
+using backend.Services.Coach;
 using backend.Services.MembreServices;
+using backend.Services.Reservation;
 using backend.Services.SuperAdminstrateur;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -197,5 +199,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 app.Run();

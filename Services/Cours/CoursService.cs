@@ -201,7 +201,7 @@ public class CoursService
                 s.DateHeure > DateTime.UtcNow);
 
         if (!string.IsNullOrEmpty(genreMembre))
-        {
+{
             var g = genreMembre.ToLower().Trim();
 
             query = query.Where(s =>

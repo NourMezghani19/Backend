@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using backend.DTOs.Cours;
 using backend.Models;
 using backend.Services;
-namespace backend.Controllers;
+namespace backend.Controllers.Cours;
 
 [ApiController]
 [Route("api/[controller]")]
