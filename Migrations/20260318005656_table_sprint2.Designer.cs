@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260318005656_table_sprint2")]
-    partial class table_sprint2
+    [Migration("20260318005747_Sprint2SupprimerChampCoach")]
+    partial class Sprint2SupprimerChampCoach
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

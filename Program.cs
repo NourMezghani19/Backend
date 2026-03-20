@@ -2,6 +2,7 @@
 using backend.Models;
 using backend.Services;
 using backend.Services.Admin;
+using backend.Services.Coach;
 using backend.Services.MembreServices;
 using backend.Services.ReservationService;
 using backend.Services.SuperAdminstrateur;
@@ -68,16 +69,16 @@ builder.Services
 
 // ================= AUTHORIZATION =================
 builder.Services.AddAuthorization(opt =>
-{
-    opt.AddPolicy("SuperAdministrateur",
-        p => p.RequireRole("SuperAdministrateur"));
+    {
+        opt.AddPolicy("SuperAdministrateur",
+            p => p.RequireRole("SuperAdministrateur"));
 
-    opt.AddPolicy("Administrateur",
-        p => p.RequireRole("Administrateur", "SuperAdministrateur"));
+        opt.AddPolicy("Administrateur",
+            p => p.RequireRole("Administrateur", "SuperAdministrateur"));
 
-    opt.AddPolicy("Membre",
-        p => p.RequireRole("Membre"));
-});
+        opt.AddPolicy("Membre",
+            p => p.RequireRole("Membre"));
+    });
 
 
 // ================= CONTROLLERS =================
@@ -267,5 +268,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 app.Run();

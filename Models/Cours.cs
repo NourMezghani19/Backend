@@ -13,6 +13,6 @@ namespace backend.Models
         public bool Actif { get; set; } = true;
         public GenreCours Genre { get; set; } 
         // Navigation
-        public ICollection<Session_Cours> Sessions= new List<Session_Cours>();
+        public ICollection<Session_Cours> SessionsCours= new List<Session_Cours>();
     }
 }
