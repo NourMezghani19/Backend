@@ -219,10 +219,19 @@ public class CoursService
     // ── SESSIONS PAR COURS ──────────────────────────────
     public async Task<List<SessionResponseDto>> GetSessionsByCours(int coursId)
     {
+        // Utiliser FirstOrDefault au lieu de Any pour être sûr de ce qu'on cherche
+        var cours = await db.Cours.FirstOrDefaultAsync(c => c.Id == coursId);
+
+        if (cours == null)
+        {
+            // Debug: Affichez tous les IDs disponibles dans la console backend pour comparer
+            var allIds = string.Join(", ", db.Cours.Select(c => c.Id));
+            throw new KeyNotFoundException($"Le cours ID {coursId} est introuvable. IDs disponibles : {allIds}");
+        }
+
         return await db.Sessions
             .Include(s => s.Cours)
             .Include(s => s.Coach)
-            .AsNoTracking()
             .Where(s => s.CoursId == coursId)
             .OrderBy(s => s.DateHeure)
             .Select(s => MapSessionToDto(s))

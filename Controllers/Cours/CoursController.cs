@@ -103,7 +103,7 @@ public class CoursController(CoursService svc) : ControllerBase
     [HttpPost]
 
 
-    [Authorize(Roles = "SuperAdministrateur")]
+    [Authorize(Roles = "Administrateur")]
 
 
     public async Task<IActionResult> Create(CreateCoursDto dto)
@@ -153,7 +153,7 @@ public class CoursController(CoursService svc) : ControllerBase
     [HttpPut("{id:int}")]
 
 
-    [Authorize(Roles = "SuperAdministrateur")]
+    [Authorize(Roles = "Administrateur")]
 
 
     public async Task<IActionResult> Update(int id, UpdateCoursDto dto)
@@ -179,7 +179,7 @@ public class CoursController(CoursService svc) : ControllerBase
     [HttpDelete("{id:int}")]
 
 
-    [Authorize(Roles = "SuperAdministrateur")]
+    [Authorize(Roles = "Administrateur")]
 
 
     public async Task<IActionResult> Delete(int id)
@@ -211,7 +211,7 @@ public class CoursController(CoursService svc) : ControllerBase
     [HttpPost("sessions")]
 
 
-    [Authorize(Roles = "SuperAdministrateur")]
+    [Authorize(Roles = "Administrateur")]
 
 
     public async Task<IActionResult> PlanifierSession(
