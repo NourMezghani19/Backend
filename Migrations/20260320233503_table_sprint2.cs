@@ -54,7 +54,6 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CapaciteMax = table.Column<int>(type: "int", nullable: false),
                     Actif = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    DateCreation = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     Genre = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
