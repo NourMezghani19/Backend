@@ -1,29 +1,27 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace backend.Models
+namespace backend.Models;
+
+public class Cours
 {
-    public class Cours
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        [Required]
+    [Required(ErrorMessage = "Le nom est obligatoire")]
+    [MaxLength(100)]
+    public string Nom { get; set; } = "";
 
-        public string Nom { get; set; } = "";
+    public string? Description { get; set; }
 
-        public string? Description { get; set; }
+    [Range(1, 30, ErrorMessage = "Capacite entre 1 et 30")]
+    public int CapaciteMax { get; set; } = 20;
 
-        [Range(1, 30)]
+    public GenreCours Genre { get; set; } = GenreCours.Mixte;
 
-        public int CapaciteMax { get; set; } = 20;
+    public bool Actif { get; set; } = true;
 
-        public bool Actif { get; set; } = true;
-        public DateTime DateCreation { get; set; } = DateTime.UtcNow;
+    public DateTime DateCreation { get; set; } = DateTime.UtcNow;
 
-        public GenreCours Genre { get; set; }
-
-
-        // ✅ Navigation — PAS d'initialisation ici (= new List<> bloque EF)
-        public virtual ICollection<Session_Cours> SessionsCours { get; set; }
-            = new List<Session_Cours>();
-    }
+    // Navigation — sessions de ce cours
+    public ICollection<Session_Cours> Sessions
+        = new List<Session_Cours>();
 }

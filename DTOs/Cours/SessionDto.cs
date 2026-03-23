@@ -2,112 +2,32 @@
 
 namespace backend.DTOs.Cours;
 
-
-
-
-// ═══ PLANIFIER UNE SESSION ══════════════════════════
-
-
+// ════ PLANIFIER SESSION (Super Admin) ══════════════
 public record PlanifierSessionDto(
-
-
-    [Required]
-
-
-    int      CoursId,
-
-
-
-
-    [Required]
-
-
-    int      CoachId,
-
-
-
-
-    [Required]
-
-
-    DateTime DateHeure
-
-
+    [Required] int CoursId,
+    [Required] int CoachId,
+    [Required] DateTime DateHeure
 );
 
-
-
-
-// ═══ MODIFIER HORAIRE D'UNE SESSION ════════════════
-
-
+// ════ MODIFIER HORAIRE (Administrateur) ════════════
 public record ModifierHoraireDto(
-
-
-    [Required]
-
-
-    DateTime NouvelleDate
-
-
+    [Required] DateTime NouvelleDate
 );
 
-
-
-
-// ═══ RÉPONSE API SESSION ════════════════════════════
-
-
+// ════ RÉPONSE SESSION ═══════════════════════════════
 public record SessionResponseDto(
-
-
     int Id,
-
-
-
-
     int CoursId,
-
-
     string CoursNom,
-
-
     string CoursGenre,
-
-
     string CoursGenreLabel,
-
-
     int CoursCapaciteMax,
-
-
-
-
     int CoachId,
-
-
     string CoachNom,
-
-
     string CoachPrenom,
-
-
     string CoachNomComplet,
-
-
     string CoachSpecialite,
-
-
-
-
     DateTime DateHeure,
-
-
     int PlacesDisponibles,
-
-
     string Statut
-
-
 );
-
