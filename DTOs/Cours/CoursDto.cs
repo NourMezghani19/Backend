@@ -2,8 +2,8 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace backend.DTOs.Cours;
+////////////////////////////////////////////////////////////////////////  create un cours     
 
-// ════ CRÉER UN COURS (Super Admin) ══════════════════
 public record CreateCoursDto(
     [Required(ErrorMessage = "Nom obligatoire")]
     [MinLength(3), MaxLength(100)]
@@ -17,7 +17,7 @@ public record CreateCoursDto(
     string? Description
 );
 
-// ════ MODIFIER UN COURS (Super Admin) ══════════════
+////////////////////////////////////////////////////////////////////////  Update un cours     
 public record UpdateCoursDto(
     string? Nom,
     int? CapaciteMax,
@@ -26,7 +26,7 @@ public record UpdateCoursDto(
     bool? Actif
 );
 
-// ════ RÉPONSE API COURS ══════════════════════════════
+////////////////////////////////////////////////////////////////////////  reponse API cours : CoursResponseDto    
 public record CoursResponseDto(
     int Id,
     string Nom,

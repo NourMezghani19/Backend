@@ -10,10 +10,8 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class CoursController(CoursService svc) : ControllerBase
 {
-    // ════════════════════════════════════════════════════
-    // SECTION COURS
-    // ════════════════════════════════════════════════════
 
+    ////////////////////////////////////////////////////////////////////////       Get ALL cours 
     [HttpGet]
     [Authorize(Roles = "Administrateur,SuperAdministrateur")]
     public async Task<ActionResult<List<CoursResponseDto>>> GetAll(
@@ -21,6 +19,7 @@ public class CoursController(CoursService svc) : ControllerBase
         [FromQuery] GenreCours? genre)
         => Ok(await svc.GetAll(search, genre));
 
+    ////////////////////////////////////////////////////////////////////////       Get le cours by id  
 
     [HttpGet("{id:int}")]
     [Authorize]
@@ -35,7 +34,7 @@ public class CoursController(CoursService svc) : ControllerBase
             return NotFound(new { message = "Cours introuvable." });
         }
     }
-
+    ////////////////////////////////////////////////////////////////////////       Create un cours 
     [HttpPost]
     [Authorize(Roles = "SuperAdministrateur")]
     public async Task<ActionResult<CoursResponseDto>> Create(CreateCoursDto dto)
@@ -51,6 +50,7 @@ public class CoursController(CoursService svc) : ControllerBase
             return Conflict(new { message = ex.Message });
         }
     }
+    ////////////////////////////////////////////////////////////////////////       Update un cours 
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "SuperAdministrateur")]
@@ -65,6 +65,7 @@ public class CoursController(CoursService svc) : ControllerBase
             return NotFound();
         }
     }
+    ////////////////////////////////////////////////////////////////////////       Delete un cours 
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "SuperAdministrateur")]
@@ -73,7 +74,7 @@ public class CoursController(CoursService svc) : ControllerBase
         try
         {
             await svc.Delete(id);
-            return NoContent(); // 204 est standard pour une suppression réussie
+            return NoContent();
         }
         catch (KeyNotFoundException)
         {
@@ -84,12 +85,8 @@ public class CoursController(CoursService svc) : ControllerBase
             return Conflict(new { message = ex.Message });
         }
     }
+    ////////////////////////////////////////////////////////////////////////  get sessions     
 
-    // ════════════════════════════════════════════════════
-    // SECTION SESSIONS
-    // ════════════════════════════════════════════════════
-
-    // Liste des sessions pour un cours spécifique
     [HttpGet("{id:int}/sessions")]
     [Authorize(Roles = "Administrateur,SuperAdministrateur")]
     public async Task<ActionResult<List<SessionResponseDto>>> GetSessions(int id)
@@ -103,9 +100,10 @@ public class CoursController(CoursService svc) : ControllerBase
             return NotFound(new { message = "Cours introuvable." });
         }
     }
+    ////////////////////////////////////////////////////////////////////////  planifier une session    
 
     [HttpPost("sessions")]
-    [Authorize(Roles = "SuperAdministrateur")]
+    [Authorize(Roles = "Administrateur,SuperAdministrateur")]
     public async Task<ActionResult<SessionResponseDto>> PlanifierSession(PlanifierSessionDto dto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -122,6 +120,7 @@ public class CoursController(CoursService svc) : ControllerBase
             return Conflict(new { message = ex.Message });
         }
     }
+    ////////////////////////////////////////////////////////////////////////  Annuler une session   
 
     [HttpPut("sessions/{id:int}/annuler")]
     [Authorize(Roles = "Administrateur,SuperAdministrateur")]
@@ -135,6 +134,7 @@ public class CoursController(CoursService svc) : ControllerBase
         catch (KeyNotFoundException) { return NotFound(); }
         catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
     }
+    ////////////////////////////////////////////////////////////////////////  Modifier l'horaire d'une session    
 
     [HttpPut("sessions/{id:int}/horaire")]
     [Authorize(Roles = "Administrateur,SuperAdministrateur")]
@@ -147,6 +147,7 @@ public class CoursController(CoursService svc) : ControllerBase
         catch (KeyNotFoundException) { return NotFound(); }
         catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
     }
+    ////////////////////////////////////////////////////////////////////////  return les sessions disponible d'un cours     
 
     [HttpGet("disponibles")]
     [Authorize]

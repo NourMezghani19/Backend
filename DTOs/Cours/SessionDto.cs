@@ -2,19 +2,19 @@
 
 namespace backend.DTOs.Cours;
 
-// ════ PLANIFIER SESSION (Super Admin) ══════════════
+////////////////////////////////////////////////////////////////////////  planifier une session dto
 public record PlanifierSessionDto(
     [Required] int CoursId,
     [Required] int CoachId,
     [Required] DateTime DateHeure
 );
 
-// ════ MODIFIER HORAIRE (Administrateur) ════════════
+//////////////////////////////////////////////////////////////////////// Modifier l'Horaire d'une Dto
 public record ModifierHoraireDto(
     [Required] DateTime NouvelleDate
 );
+////////////////////////////////////////////////////////////////////////  reponse API sessions : SessionResponseDto    
 
-// ════ RÉPONSE SESSION ═══════════════════════════════
 public record SessionResponseDto(
     int Id,
     int CoursId,

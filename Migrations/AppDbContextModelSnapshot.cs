@@ -88,7 +88,8 @@ namespace backend.Migrations
 
                     b.Property<string>("Nom")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
 

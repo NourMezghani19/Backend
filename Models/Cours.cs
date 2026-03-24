@@ -22,6 +22,5 @@ public class Cours
     public DateTime DateCreation { get; set; } = DateTime.UtcNow;
 
     // Navigation — sessions de ce cours
-    public ICollection<Session_Cours> Sessions
-        = new List<Session_Cours>();
+    public ICollection<Session_Cours> Sessions = new List<Session_Cours>();
 }

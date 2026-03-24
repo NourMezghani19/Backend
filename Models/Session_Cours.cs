@@ -17,7 +17,5 @@ public class Session_Cours
     public string Statut { get; set; } = "Planifie";
     // Planifie | Annule | Termine
 
-    // Navigation
-    public ICollection<Reservation> Reservations
-        = new List<Reservation>();
+    public ICollection<Reservation> Reservations = new List<Reservation>();
 }

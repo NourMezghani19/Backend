@@ -7,11 +7,9 @@ namespace backend.Services;
 
 public class CoursService(AppDbContext db)
 {
-    // ════════════════════════════════════════════════════
+  
     // SUPER ADMIN — CRUD COURS
-    // ════════════════════════════════════════════════════
-
-    // GET ALL — admin (search + filtre genre)
+    ////////////////////////////////////////////////////////////////////////  Get tous les  cours  
     public async Task<List<CoursResponseDto>> GetAll(
         string? search = null,
         GenreCours? genre = null)
@@ -30,7 +28,6 @@ public class CoursService(AppDbContext db)
             .AsNoTracking()
             .ToListAsync();
 
-        // Compter sessions separement
         var ids = list.Select(c => c.Id).ToList();
         var counts = await db.Sessions
             .Where(s => ids.Contains(s.CoursId))
@@ -47,7 +44,7 @@ public class CoursService(AppDbContext db)
         )).ToList();
     }
 
-    // GET BY ID
+    ////////////////////////////////////////////////////////////////////////  Get tous cours par id  
     public async Task<CoursResponseDto> GetById(int id)
     {
         var c = await db.Cours
@@ -64,7 +61,7 @@ public class CoursService(AppDbContext db)
             c.Actif, nbSessions, c.DateCreation);
     }
 
-    // CREATE — Super Admin
+    ////////////////////////////////////////////////////////////////////////  Create cours  
     public async Task<CoursResponseDto> Create(CreateCoursDto dto)
     {
         if (dto.CapaciteMax > 30)
@@ -88,7 +85,7 @@ public class CoursService(AppDbContext db)
             cours.Actif, 0, cours.DateCreation);
     }
 
-    // UPDATE — Super Admin (patch)
+    ////////////////////////////////////////////////////////////////////////  Update cours  
     public async Task<CoursResponseDto> Update(int id, UpdateCoursDto dto)
     {
         var c = await db.Cours.FindAsync(id)
@@ -104,7 +101,7 @@ public class CoursService(AppDbContext db)
         return await GetById(id);
     }
 
-    // DELETE — Super Admin
+    ////////////////////////////////////////////////////////////////////////  delete cours  
     public async Task Delete(int id)
     {
         var c = await db.Cours.FindAsync(id)
@@ -120,10 +117,8 @@ public class CoursService(AppDbContext db)
         db.Cours.Remove(c);
         await db.SaveChangesAsync();
     }
-
-    // ════════════════════════════════════════════════════
     // SUPER ADMIN — PLANIFIER SESSION
-    // ════════════════════════════════════════════════════
+    ////////////////////////////////////////////////////////////////////////  Planifier sessions
 
     public async Task<SessionResponseDto> PlanifierSession(
         PlanifierSessionDto dto)
@@ -155,11 +150,8 @@ public class CoursService(AppDbContext db)
         return MapSessionToDto(session);
     }
 
-    // ════════════════════════════════════════════════════
     // ADMINISTRATEUR — GÉRER SESSIONS
-    // ════════════════════════════════════════════════════
-
-    // ANNULER SESSION
+    ////////////////////////////////////////////////////////////////////////  Annuler une session 
     public async Task AnnulerSession(int sessionId)
     {
         var s = await db.Sessions.FindAsync(sessionId)
@@ -172,7 +164,7 @@ public class CoursService(AppDbContext db)
         await db.SaveChangesAsync();
     }
 
-    // MODIFIER HORAIRE
+    ////////////////////////////////////////////////////////////////////////  Modifier l'horaire d'une session 
     public async Task<SessionResponseDto> ModifierHoraire(
         int sessionId, ModifierHoraireDto dto)
     {
@@ -191,11 +183,9 @@ public class CoursService(AppDbContext db)
         return MapSessionToDto(s);
     }
 
-    // ════════════════════════════════════════════════════
     // MEMBRE — CONSULTER SESSIONS DISPONIBLES
-    // ════════════════════════════════════════════════════
 
-    // Sessions filtrées par genre du membre (lu depuis JWT)
+    ////////////////////////////////////////////////////////////////////////  Get Sessions Disponibles
     public async Task<List<SessionResponseDto>> GetSessionsDisponibles(
         string? genreMembre = null)
     {
@@ -224,7 +214,7 @@ public class CoursService(AppDbContext db)
         return list.Select(MapSessionToDto).ToList();
     }
 
-    // Sessions par cours
+    ////////////////////////////////////////////////////////////////////////  Get Sessions By Cours
     public async Task<List<SessionResponseDto>> GetSessionsByCours(int coursId)
     {
         var list = await db.Sessions
@@ -238,7 +228,8 @@ public class CoursService(AppDbContext db)
         return list.Select(MapSessionToDto).ToList();
     }
 
-    // ════ MAPPINGS ═══════════════════════════════════════
+    ////////////////////////////////////////////////////////////////////////  Genre Label
+
 
 
     private static string GenreLabel(GenreCours g) => g switch
@@ -247,6 +238,7 @@ public class CoursService(AppDbContext db)
         GenreCours.Femme => "Femmes uniquement",
         _ => "Mixte"
     };
+    ////////////////////////////////////////////////////////////////////////   Map Session To Dto
 
     private static SessionResponseDto MapSessionToDto(Session_Cours s) => new(
         s.Id,

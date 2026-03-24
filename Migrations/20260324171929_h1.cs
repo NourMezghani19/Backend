@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class h1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,14 +48,14 @@ namespace backend.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Nom = table.Column<string>(type: "longtext", nullable: false)
+                    Nom = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CapaciteMax = table.Column<int>(type: "int", nullable: false),
+                    Genre = table.Column<int>(type: "int", nullable: false),
                     Actif = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    DateCreation = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Genre = table.Column<int>(type: "int", nullable: false)
+                    DateCreation = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {

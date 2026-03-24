@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260318005747_Sprint2SupprimerChampCoach")]
-    partial class Sprint2SupprimerChampCoach
+    [Migration("20260324171929_h1")]
+    partial class h1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -80,6 +80,9 @@ namespace backend.Migrations
                     b.Property<int>("CapaciteMax")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
@@ -88,7 +91,8 @@ namespace backend.Migrations
 
                     b.Property<string>("Nom")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
 
