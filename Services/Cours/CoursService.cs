@@ -40,7 +40,9 @@ public class CoursService(AppDbContext db)
             c.Genre.ToString(), GenreLabel(c.Genre),
             c.Actif,
             counts.GetValueOrDefault(c.Id, 0),
-            c.DateCreation
+            c.JourSemaine ?? "", // Évite le null
+            "", // HeureDebut (Le cours parent n'a pas d'heure fixe)
+            ""  // HeureFin (Paramètre manquant qui causait l'erreur)
         )).ToList();
     }
 
@@ -54,19 +56,20 @@ public class CoursService(AppDbContext db)
 
         var nbSessions = await db.Sessions
             .CountAsync(s => s.CoursId == id);
-
         return new CoursResponseDto(
             c.Id, c.Nom, c.Description, c.CapaciteMax,
             c.Genre.ToString(), GenreLabel(c.Genre),
-            c.Actif, nbSessions, c.DateCreation);
+            c.Actif, nbSessions,
+            c.JourSemaine ?? "",
+            "", // HeureDebut
+            ""  // HeureFin
+        );
     }
 
     ////////////////////////////////////////////////////////////////////////  Create cours  
     public async Task<CoursResponseDto> Create(CreateCoursDto dto)
     {
-        if (dto.CapaciteMax > 30)
-            throw new InvalidOperationException(
-                "Capacite max autorisee : 30");
+       
 
         var cours = new Cours
         {
@@ -80,9 +83,13 @@ public class CoursService(AppDbContext db)
         db.Cours.Add(cours);
         await db.SaveChangesAsync();
         return new CoursResponseDto(
-            cours.Id, cours.Nom, cours.Description, cours.CapaciteMax,
-            cours.Genre.ToString(), GenreLabel(cours.Genre),
-            cours.Actif, 0, cours.DateCreation);
+             cours.Id, cours.Nom, cours.Description, cours.CapaciteMax,
+             cours.Genre.ToString(), GenreLabel(cours.Genre),
+             cours.Actif, 0,
+             cours.JourSemaine,
+             "", // HeureDebut
+             ""  // HeureFin
+         );
     }
 
     ////////////////////////////////////////////////////////////////////////  Update cours  
@@ -120,8 +127,7 @@ public class CoursService(AppDbContext db)
     // SUPER ADMIN — PLANIFIER SESSION
     ////////////////////////////////////////////////////////////////////////  Planifier sessions
 
-    public async Task<SessionResponseDto> PlanifierSession(
-        PlanifierSessionDto dto)
+    public async Task<SessionResponseDto> PlanifierSession(PlanifierSessionDto dto)
     {
         var cours = await db.Cours.FindAsync(dto.CoursId)
             ?? throw new KeyNotFoundException("Cours introuvable");
@@ -132,11 +138,28 @@ public class CoursService(AppDbContext db)
         if (!coach.Disponible)
             throw new InvalidOperationException("Coach non disponible");
 
+        // --- NOUVELLE VALIDATION ANTI-CHEVAUCHEMENT ---
+        var debut = TimeSpan.Parse(dto.HeureDebut);
+        var fin = TimeSpan.Parse(dto.HeureFin);
+
+        bool dejaPris = await db.Sessions.AnyAsync(s =>
+            s.CoachId == dto.CoachId &&
+            s.JourSemaine == dto.JourSemaine &&
+            s.Statut == "Planifie" &&
+            ((debut >= s.HeureDebut && debut < s.HeureFin) || // Nouveau début pendant une session existante
+             (fin > s.HeureDebut && fin <= s.HeureFin) ||      // Nouvelle fin pendant une session existante
+             (debut <= s.HeureDebut && fin >= s.HeureFin)));   // Session existante englobée par la nouvelle
+
+        if (dejaPris)
+            throw new InvalidOperationException("Le coach a déjà un cours sur ce créneau horaire.");
+
         var session = new Session_Cours
         {
             CoursId = dto.CoursId,
             CoachId = dto.CoachId,
-            DateHeure = dto.DateHeure,
+            JourSemaine = dto.JourSemaine,
+            HeureDebut = debut, // Stocké en TimeSpan
+            HeureFin = fin,
             PlacesDisponibles = cours.CapaciteMax,
             Statut = "Planifie"
         };
@@ -165,8 +188,7 @@ public class CoursService(AppDbContext db)
     }
 
     ////////////////////////////////////////////////////////////////////////  Modifier l'horaire d'une session 
-    public async Task<SessionResponseDto> ModifierHoraire(
-        int sessionId, ModifierHoraireDto dto)
+    public async Task<SessionResponseDto> ModifierHoraire(int sessionId, ModifierHoraireDto dto)
     {
         var s = await db.Sessions
             .Include(s => s.Cours)
@@ -175,10 +197,12 @@ public class CoursService(AppDbContext db)
             ?? throw new KeyNotFoundException("Session introuvable");
 
         if (s.Statut == "Annule")
-            throw new InvalidOperationException(
-                "Session annulee, modification impossible");
+            throw new InvalidOperationException("Session annulée, modification impossible");
 
-        s.DateHeure = dto.NouvelleDate;
+        s.JourSemaine = dto.NouveauJour;
+        s.HeureDebut = TimeSpan.Parse(dto.NouvelleHeureDebut);
+        s.HeureFin = TimeSpan.Parse(dto.NouvelleHeureFin);
+
         await db.SaveChangesAsync();
         return MapSessionToDto(s);
     }
@@ -194,8 +218,7 @@ public class CoursService(AppDbContext db)
             .Include(s => s.Coach)
             .Where(s =>
                 s.Statut == "Planifie" &&
-                s.PlacesDisponibles > 0 &&
-                s.DateHeure > DateTime.UtcNow);
+                s.PlacesDisponibles > 0);
 
         if (!string.IsNullOrEmpty(genreMembre))
         {
@@ -206,27 +229,40 @@ public class CoursService(AppDbContext db)
                 (g == "femme" && s.Cours!.Genre == GenreCours.Femme));
         }
 
-        var list = await q
-            .OrderBy(s => s.DateHeure)
-            .AsNoTracking()
-            .ToListAsync();
+        var sessions = await q.ToListAsync(); // On récupère la liste en mémoire pour trier
 
-        return list.Select(MapSessionToDto).ToList();
+        var joursOrdre = new List<string> { "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche" };
+
+        return sessions
+            .OrderBy(s => joursOrdre.IndexOf(s.JourSemaine)) // Tri par jour (0 à 6)
+            .ThenBy(s => s.HeureDebut)                            // Puis par heure (ex: "08:00" avant "14:00")
+            .Select(MapSessionToDto)
+            .ToList();
     }
 
     ////////////////////////////////////////////////////////////////////////  Get Sessions By Cours
-    public async Task<List<SessionResponseDto>> GetSessionsByCours(int coursId)
-    {
-        var list = await db.Sessions
-                .Include(s => s.Cours)
-                .Include(s => s.Coach)
-                .AsNoTracking()
-                .Where(s => s.CoursId == coursId)
-                .OrderBy(s => s.DateHeure)
-                .ToListAsync();
+   public async Task<List<SessionResponseDto>> GetSessionsByCours(int coursId)
+{
+    // 1. Récupération des données sans le OrderBy (car SQL ne connaît pas l'ordre des jours)
+    var sessions = await db.Sessions
+            .Include(s => s.Cours)
+            .Include(s => s.Coach)
+            .AsNoTracking()
+            .Where(s => s.CoursId == coursId)
+            .ToListAsync();
 
-        return list.Select(MapSessionToDto).ToList();
-    }
+    // 2. Définition de l'ordre logique de la semaine
+    var joursOrdre = new List<string> { 
+        "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche" 
+    };
+
+    // 3. Tri en mémoire (C#) et Mapping vers le DTO
+    return sessions
+        .OrderBy(s => joursOrdre.IndexOf(s.JourSemaine)) // Trie par l'index (0 à 6)
+        .ThenBy(s => s.HeureDebut)                            // Trie par l'heure (ex: "08:00" avant "14:00")
+        .Select(MapSessionToDto)
+        .ToList();
+}
 
     ////////////////////////////////////////////////////////////////////////  Genre Label
 
@@ -241,13 +277,17 @@ public class CoursService(AppDbContext db)
     ////////////////////////////////////////////////////////////////////////   Map Session To Dto
 
     private static SessionResponseDto MapSessionToDto(Session_Cours s) => new(
-        s.Id,
-        s.CoursId, s.Cours!.Nom,
-        s.Cours!.Genre.ToString(), GenreLabel(s.Cours!.Genre),
-        s.Cours!.CapaciteMax,
-        s.CoachId, s.Coach!.Nom, s.Coach!.Prenom,
-        $"{s.Coach!.Prenom} {s.Coach!.Nom}",
-        s.Coach!.Specialite,
-        s.DateHeure, s.PlacesDisponibles, s.Statut
-    );
+    s.Id,
+    s.CoursId, s.Cours!.Nom,
+    s.Cours!.Genre.ToString(), GenreLabel(s.Cours!.Genre),
+    s.Cours!.CapaciteMax,
+    s.CoachId, s.Coach!.Nom, s.Coach!.Prenom,
+    $"{s.Coach!.Prenom} {s.Coach!.Nom}",
+    s.Coach!.Specialite,
+    s.JourSemaine,
+    s.HeureDebut.ToString(@"hh\:mm"), // Format "14:30"
+    s.HeureFin.ToString(@"hh\:mm"),   // Format "16:00"
+    s.PlacesDisponibles,
+    s.Statut
+);
 }

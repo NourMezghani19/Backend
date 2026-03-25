@@ -55,7 +55,10 @@ namespace backend.Migrations
                     CapaciteMax = table.Column<int>(type: "int", nullable: false),
                     Genre = table.Column<int>(type: "int", nullable: false),
                     Actif = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    DateCreation = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    JourSemaine = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    HeureDebut = table.Column<TimeSpan>(type: "time(6)", nullable: false),
+                    HeureFin = table.Column<TimeSpan>(type: "time(6)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -128,7 +131,10 @@ namespace backend.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     CoursId = table.Column<int>(type: "int", nullable: false),
                     CoachId = table.Column<int>(type: "int", nullable: false),
-                    DateHeure = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    JourSemaine = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    HeureDebut = table.Column<TimeSpan>(type: "time(6)", nullable: false),
+                    HeureFin = table.Column<TimeSpan>(type: "time(6)", nullable: false),
                     PlacesDisponibles = table.Column<int>(type: "int", nullable: false),
                     Statut = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")

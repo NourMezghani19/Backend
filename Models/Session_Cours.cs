@@ -1,4 +1,6 @@
-﻿namespace backend.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace backend.Models;
 
 public class Session_Cours
 {
@@ -10,8 +12,12 @@ public class Session_Cours
     public int CoachId { get; set; }
     public Coach? Coach { get; set; }
 
-    public DateTime DateHeure { get; set; }
+    [Required]
+    public string JourSemaine { get; set; } = "Lundi"; // Lundi, Mardi, Mercredi...
 
+    [Required]
+    public TimeSpan HeureDebut { get; set; } // Utilise TimeSpan pour les calculs
+    public TimeSpan HeureFin { get; set; }
     public int PlacesDisponibles { get; set; }
 
     public string Statut { get; set; } = "Planifie";

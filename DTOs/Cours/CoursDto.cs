@@ -9,10 +9,12 @@ public record CreateCoursDto(
     [MinLength(3), MaxLength(100)]
     string       Nom,
 
-    [Range(1, 30, ErrorMessage = "Capacite entre 1 et 30")]
-    int           CapaciteMax,
+   
 
-    GenreCours Genre,
+    [Range(1, int.MaxValue, ErrorMessage = "La capacité doit être d'au moins 1 personne")]
+     int CapaciteMax ,
+
+GenreCours Genre,
 
     string? Description
 );
@@ -36,5 +38,7 @@ public record CoursResponseDto(
     string GenreLabel,
     bool Actif,
     int NbSessions,
-    DateTime DateCreation
+    string JourSemaine, // AJOUTÉ
+    string HeureDebut, // Remplace "Heure"
+    string HeureFin    // Ajouté
 );

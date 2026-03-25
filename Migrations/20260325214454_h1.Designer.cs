@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260324171929_h1")]
+    [Migration("20260325214454_h1")]
     partial class h1
     {
         /// <inheritdoc />
@@ -80,14 +80,21 @@ namespace backend.Migrations
                     b.Property<int>("CapaciteMax")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("DateCreation")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
                     b.Property<int>("Genre")
                         .HasColumnType("int");
+
+                    b.Property<TimeSpan>("HeureDebut")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeSpan>("HeureFin")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("JourSemaine")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Nom")
                         .IsRequired()
@@ -211,8 +218,15 @@ namespace backend.Migrations
                     b.Property<int>("CoursId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("DateHeure")
-                        .HasColumnType("datetime(6)");
+                    b.Property<TimeSpan>("HeureDebut")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeSpan>("HeureFin")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("JourSemaine")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("PlacesDisponibles")
                         .HasColumnType("int");

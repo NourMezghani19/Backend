@@ -77,14 +77,21 @@ namespace backend.Migrations
                     b.Property<int>("CapaciteMax")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("DateCreation")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
                     b.Property<int>("Genre")
                         .HasColumnType("int");
+
+                    b.Property<TimeSpan>("HeureDebut")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeSpan>("HeureFin")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("JourSemaine")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Nom")
                         .IsRequired()
@@ -208,8 +215,15 @@ namespace backend.Migrations
                     b.Property<int>("CoursId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("DateHeure")
-                        .HasColumnType("datetime(6)");
+                    b.Property<TimeSpan>("HeureDebut")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeSpan>("HeureFin")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("JourSemaine")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("PlacesDisponibles")
                         .HasColumnType("int");

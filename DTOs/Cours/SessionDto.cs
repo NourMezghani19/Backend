@@ -6,12 +6,15 @@ namespace backend.DTOs.Cours;
 public record PlanifierSessionDto(
     [Required] int CoursId,
     [Required] int CoachId,
-    [Required] DateTime DateHeure
-);
+    [Required] string JourSemaine, // Ex: "Lundi"
+    [Required] string HeureDebut, // Reçu du <input type="time">
+    [Required] string HeureFin );   // Reçu du <input type="time">
 
 //////////////////////////////////////////////////////////////////////// Modifier l'Horaire d'une Dto
 public record ModifierHoraireDto(
-    [Required] DateTime NouvelleDate
+    [Required]  string NouveauJour,
+    [Required]  string NouvelleHeureDebut, // AJOUTÉ
+    [Required]  string NouvelleHeureFin    // AJOUTÉ
 );
 ////////////////////////////////////////////////////////////////////////  reponse API sessions : SessionResponseDto    
 
@@ -27,7 +30,9 @@ public record SessionResponseDto(
     string CoachPrenom,
     string CoachNomComplet,
     string CoachSpecialite,
-    DateTime DateHeure,
+    string JourSemaine,
+    string HeureDebut, // Remplace "Heure"
+    string HeureFin ,   // Ajouté
     int PlacesDisponibles,
     string Statut
 );
