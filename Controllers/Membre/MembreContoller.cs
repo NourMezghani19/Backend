@@ -128,6 +128,7 @@ namespace backend.Controllers.Membre
         }
 
 
+
         [HttpDelete("{id:int}/photo")]
         public async Task<IActionResult> SupprimerPhoto(
             int id, [FromServices] AppDbContext db)

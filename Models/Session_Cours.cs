@@ -1,26 +1,27 @@
-﻿namespace backend.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace backend.Models;
+
+public class Session_Cours
 {
-    public class Session_Cours
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public int CoursId { get; set; }
+    public int CoursId { get; set; }
+    public Cours? Cours { get; set; }
 
-        public Cours? Cours { get; set; }
+    public int CoachId { get; set; }
+    public Coach? Coach { get; set; }
 
-        public Coach? Coach { get; set; }
+    [Required]
+    public string JourSemaine { get; set; } = "Lundi"; // Lundi, Mardi, Mercredi...
 
-        public int CoachId { get; set; }
+    [Required]
+    public TimeSpan HeureDebut { get; set; } // Utilise TimeSpan pour les calculs
+    public TimeSpan HeureFin { get; set; }
+    public int PlacesDisponibles { get; set; }
 
-        public DateTime DateHeure { get; set; }
+    public string Statut { get; set; } = "Planifie";
+    // Planifie | Annule | Termine
 
-        public int PlacesDisponibles { get; set; }
-
-        public string Statut { get; set; } = "Planifié";
-
-
-        public ICollection<Reservation> Reservations
-
-            = new List<Reservation>();
-    }
+    public ICollection<Reservation> Reservations = new List<Reservation>();
 }

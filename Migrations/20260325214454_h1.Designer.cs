@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260317233639_Sprint2")]
-    partial class Sprint2
+    [Migration("20260325214454_h1")]
+    partial class h1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,9 +45,6 @@ namespace backend.Migrations
 
                     b.Property<string>("Nom")
                         .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("PhotoProfile")
                         .HasColumnType("longtext");
 
                     b.Property<string>("PhotoUrl")
@@ -89,9 +86,20 @@ namespace backend.Migrations
                     b.Property<int>("Genre")
                         .HasColumnType("int");
 
-                    b.Property<string>("Nom")
+                    b.Property<TimeSpan>("HeureDebut")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeSpan>("HeureFin")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("JourSemaine")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
 
@@ -210,8 +218,15 @@ namespace backend.Migrations
                     b.Property<int>("CoursId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("DateHeure")
-                        .HasColumnType("datetime(6)");
+                    b.Property<TimeSpan>("HeureDebut")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeSpan>("HeureFin")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("JourSemaine")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("PlacesDisponibles")
                         .HasColumnType("int");

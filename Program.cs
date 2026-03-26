@@ -3,7 +3,6 @@ using backend.Models;
 using backend.Services;
 using backend.Services.Admin;
 using backend.Services.Coach;
-using backend.Services.Cours;
 using backend.Services.MembreServices;
 using backend.Services.Reservation;
 using backend.Services.SuperAdminstrateur;
@@ -157,7 +156,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("SuperAdmin : superadmin@gmail.com / Admin123!");
     }
 
-    /*var membre = db.Utilisateurs
+    /* var membre = db.Utilisateurs
      .FirstOrDefault(u => u.Email == "membre@pfa.com");
 
     if (membre == null)
@@ -182,6 +181,7 @@ using (var scope = app.Services.CreateScope())
         db.SaveChanges();
         Console.WriteLine("Membre créé");
     }*/
+
     var uploadsPath = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads");
     if (!Directory.Exists(uploadsPath))
     {
@@ -200,5 +200,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 app.Run();

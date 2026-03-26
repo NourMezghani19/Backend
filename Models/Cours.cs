@@ -1,29 +1,32 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace backend.Models
+namespace backend.Models;
+
+public class Cours
 {
-    public class Cours
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        [Required]
+    [Required(ErrorMessage = "Le nom est obligatoire")]
+    [MaxLength(100)]
+    public string Nom { get; set; } = "";
 
-        public string Nom { get; set; } = "";
+    public string? Description { get; set; }
 
-        public string? Description { get; set; }
+    [Range(1, int.MaxValue, ErrorMessage = "La capacité doit être d'au moins 1 personne")]
+    public int CapaciteMax { get; set; } = 20;
 
-        [Range(1, 30)]
+    public GenreCours Genre { get; set; } = GenreCours.Mixte;
 
-        public int CapaciteMax { get; set; } = 20;
+    public bool Actif { get; set; } = true;
 
-        public bool Actif { get; set; } = true;
-        public GenreCours Genre { get; set; } 
+    [Required]
+    public string JourSemaine { get; set; } = "Lundi"; // Lundi, Mardi, Mercredi...
+    [Required]
 
+    public TimeSpan HeureDebut { get; set; } // Utilise TimeSpan pour les calculs
+    [Required]
 
-        // Navigation
-
-        public ICollection<Session_Cours> Sessions
-
-            = new List<Session_Cours>();
-    }
+    public TimeSpan HeureFin { get; set; }
+    // Navigation — sessions de ce cours
+    public ICollection<Session_Cours> Sessions = new List<Session_Cours>();
 }

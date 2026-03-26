@@ -83,9 +83,20 @@ namespace backend.Migrations
                     b.Property<int>("Genre")
                         .HasColumnType("int");
 
-                    b.Property<string>("Nom")
+                    b.Property<TimeSpan>("HeureDebut")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeSpan>("HeureFin")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("JourSemaine")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
 
@@ -202,8 +213,15 @@ namespace backend.Migrations
                     b.Property<int>("CoursId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("DateHeure")
-                        .HasColumnType("datetime(6)");
+                    b.Property<TimeSpan>("HeureDebut")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeSpan>("HeureFin")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("JourSemaine")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("PlacesDisponibles")
                         .HasColumnType("int");
