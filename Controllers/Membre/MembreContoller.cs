@@ -79,7 +79,6 @@ namespace backend.Controllers.Membre
             });
         }
 
-
         /*[HttpPost("{id:int}/photo")]
         public async Task<IActionResult> UploadPhoto(
                 int id, [FromForm] IFormFile photo)

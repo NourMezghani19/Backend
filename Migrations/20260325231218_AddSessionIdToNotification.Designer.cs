@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325231218_AddSessionIdToNotification")]
+    partial class AddSessionIdToNotification
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -77,21 +80,14 @@ namespace backend.Migrations
                     b.Property<int>("CapaciteMax")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
                     b.Property<int>("Genre")
                         .HasColumnType("int");
-
-                    b.Property<TimeSpan>("HeureDebut")
-                        .HasColumnType("time(6)");
-
-                    b.Property<TimeSpan>("HeureFin")
-                        .HasColumnType("time(6)");
-
-                    b.Property<string>("JourSemaine")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("Nom")
                         .IsRequired()
@@ -114,9 +110,6 @@ namespace backend.Migrations
                     b.Property<int>("CoachId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CreeLe")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<TimeSpan>("HeureDebut")
                         .HasColumnType("time(6)");
 
@@ -126,12 +119,17 @@ namespace backend.Migrations
                     b.Property<int>("Jour")
                         .HasColumnType("int");
 
-                    b.Property<string>("Note")
-                        .HasColumnType("longtext");
+                    b.Property<bool>("Recurrent")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("SessionId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CoachId");
+
+                    b.HasIndex("SessionId");
 
                     b.ToTable("EmploisDuTemps");
                 });
@@ -219,15 +217,8 @@ namespace backend.Migrations
                     b.Property<int>("CoursId")
                         .HasColumnType("int");
 
-                    b.Property<TimeSpan>("HeureDebut")
-                        .HasColumnType("time(6)");
-
-                    b.Property<TimeSpan>("HeureFin")
-                        .HasColumnType("time(6)");
-
-                    b.Property<string>("JourSemaine")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<DateTime>("DateHeure")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("PlacesDisponibles")
                         .HasColumnType("int");
@@ -348,7 +339,15 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.Session_Cours", "Session")
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Coach");
+
+                    b.Navigation("Session");
                 });
 
             modelBuilder.Entity("backend.Models.Reservation", b =>

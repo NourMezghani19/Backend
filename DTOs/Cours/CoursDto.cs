@@ -37,6 +37,8 @@ public record CoursResponseDto(
     string Genre,
     string GenreLabel,
     bool Actif,
+
+
     int NbSessions,
     string JourSemaine, // AJOUTÉ
     string HeureDebut, // Remplace "Heure"

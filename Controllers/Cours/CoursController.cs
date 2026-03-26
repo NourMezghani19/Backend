@@ -148,13 +148,14 @@ public class CoursController(CoursService svc) : ControllerBase
         catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
     }
     ////////////////////////////////////////////////////////////////////////  return les sessions disponible d'un cours     
+    //////////////////////////////////////////////////////////////////////// return TOUTES les sessions disponibles  
 
     [HttpGet("disponibles")]
     [Authorize]
     public async Task<ActionResult<List<SessionResponseDto>>> GetDisponibles()
     {
-        // On récupère le genre depuis le token JWT
-        var genre = User.FindFirst("genre")?.Value;
-        return Ok(await svc.GetSessionsDisponibles(genre));
+        // On ne récupère plus le genre du token JWT.
+        // On passe 'null' ou on appelle une surcharge du service qui ignore le genre.
+        return Ok(await svc.GetSessionsDisponibles(null));
     }
 }
