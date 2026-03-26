@@ -100,6 +100,30 @@ namespace backend.Services.Coach
             await this.db.SaveChangesAsync();
             return true;
         }
+        public async Task<List<CoachSearchDto>> Search(string q)
+        {
+            if (string.IsNullOrWhiteSpace(q)) return [];
+
+            var terme = q.Trim().ToLower();
+
+            var coachs = await this.db.Coachs
+                .Where(c => c.Disponible &&
+                            (c.Prenom.ToLower().Contains(terme) ||
+                             c.Nom.ToLower().Contains(terme)))
+                .OrderBy(c => c.Prenom)
+                .Take(10)
+                .ToListAsync();
+
+            return coachs.Select(c => new CoachSearchDto
+            {
+                Id = c.Id,
+                Prenom = c.Prenom,
+                Nom = c.Nom,
+                NomComplet = $"{c.Prenom} {c.Nom}",
+                PhotoUrl = c.PhotoUrl,
+                Specialite = c.Specialite
+            }).ToList();
+        }
 
         // ── MAP ──────────────────────────────────────────
         private static CoachResponseDto MapToDto(Models.Coach c) => new CoachResponseDto

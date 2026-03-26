@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260321205035_EmploiDuTempsJourFixe")]
+    partial class EmploiDuTempsJourFixe
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -83,20 +86,9 @@ namespace backend.Migrations
                     b.Property<int>("Genre")
                         .HasColumnType("int");
 
-                    b.Property<TimeSpan>("HeureDebut")
-                        .HasColumnType("time(6)");
-
-                    b.Property<TimeSpan>("HeureFin")
-                        .HasColumnType("time(6)");
-
-                    b.Property<string>("JourSemaine")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<string>("Nom")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -213,15 +205,8 @@ namespace backend.Migrations
                     b.Property<int>("CoursId")
                         .HasColumnType("int");
 
-                    b.Property<TimeSpan>("HeureDebut")
-                        .HasColumnType("time(6)");
-
-                    b.Property<TimeSpan>("HeureFin")
-                        .HasColumnType("time(6)");
-
-                    b.Property<string>("JourSemaine")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<DateTime>("DateHeure")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("PlacesDisponibles")
                         .HasColumnType("int");

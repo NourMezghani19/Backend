@@ -6,6 +6,7 @@ using backend.Services.Coach;
 using backend.Services.MembreServices;
 using backend.Services.Reservation;
 using backend.Services.SuperAdminstrateur;
+using backend.Services.EmploiDuTemps;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
