@@ -49,26 +49,39 @@ namespace backend.Services {
             user.MotDePasse = BCrypt.Net.BCrypt.HashPassword(nouveauMdp); 
             await db.SaveChangesAsync();
             return true;
-        } 
-        public string GenererToken(Utilisateur user, DateTime expiration) { 
-            var claims = new[] { 
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), 
-                new Claim("email", user.Email),
-                new Claim("nom", user.Nom),
-                new Claim("prenom", user.Prenom),
-                new Claim(ClaimTypes.Role, user.Role), 
-                new Claim(JwtRegisteredClaimNames.Jti, 
-                Guid.NewGuid().ToString()), 
-                new Claim(JwtRegisteredClaimNames.Iat, 
-                new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString()) }; 
-            var keyBytes = Encoding.UTF8.GetBytes(config["Jwt:Key"]!); 
-            var key = new SymmetricSecurityKey(keyBytes); 
+        }
+        public string GenererToken(Utilisateur user, DateTime expiration)
+        {
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim("email", user.Email),
+        new Claim("nom", user.Nom),
+        new Claim("prenom", user.Prenom),
+        new Claim(ClaimTypes.Role, user.Role),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(JwtRegisteredClaimNames.Iat,
+            new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString())
+    };
+
+            // ✅ Ajouter le genre si c'est un Membre
+            if (user is Membre membre)
+            {
+                claims.Add(new Claim("genre", membre.genre ?? ""));
+            }
+
+            var keyBytes = Encoding.UTF8.GetBytes(config["Jwt:Key"]!);
+            var key = new SymmetricSecurityKey(keyBytes);
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var token = new JwtSecurityToken(issuer: config["Jwt:Issuer"], 
-                audience: config["Jwt:Audience"], 
+
+            var token = new JwtSecurityToken(
+                issuer: config["Jwt:Issuer"],
+                audience: config["Jwt:Audience"],
                 claims: claims,
                 notBefore: DateTime.UtcNow,
-                expires: expiration, 
+                expires: expiration,
                 signingCredentials: creds);
-            return new JwtSecurityTokenHandler().WriteToken(token); 
-        } } }
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+    } }

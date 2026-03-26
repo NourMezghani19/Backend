@@ -11,7 +11,7 @@
         public bool Disponible { get; set; }
         public string? PhotoUrl { get; set; }
         public DateTime DateCreation { get; set; }= DateTime.UtcNow;
-        public ICollection<Session_Cours> Sessions
+        public ICollection<Session_Cours> SessionsCours
 
         = new List<Session_Cours>();
     }
