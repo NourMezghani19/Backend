@@ -40,6 +40,15 @@ namespace backend.Controllers
             return Ok(notifications);
         }
 
+        // ✅ NOUVEAU — GET api/notifications/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var notif = await db.Notifications.FindAsync(id);
+            if (notif == null) return NotFound();
+            return Ok(notif);
+        }
+
         // PATCH api/notifications/5/lue
         [HttpPatch("{id}/lue")]
         public async Task<IActionResult> MarquerLue(int id)

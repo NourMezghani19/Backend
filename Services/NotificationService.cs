@@ -1,5 +1,7 @@
 ﻿using backend.Data;
 using backend.Models;
+using backend.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services
@@ -8,11 +10,16 @@ namespace backend.Services
     {
         private readonly AppDbContext db;
         private readonly ILogger<NotificationService> logger;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public NotificationService(AppDbContext db, ILogger<NotificationService> logger)
+        public NotificationService(
+            AppDbContext db,
+            ILogger<NotificationService> logger,
+            IHubContext<NotificationHub> hubContext)
         {
             this.db = db;
             this.logger = logger;
+            this._hubContext = hubContext;
         }
 
         // CONFIRMATION DE RÉSERVATION
@@ -24,74 +31,94 @@ namespace backend.Services
                 .Include(s => s.Cours)
                 .FirstOrDefaultAsync(s => s.Id == resa.SessionCoursId);
 
-            if (session?.Cours == null)
-            {
-                logger.LogWarning("Session ou Cours introuvable pour SessionId={Id}", resa.SessionCoursId);
-                return;
-            }
+            if (session?.Cours == null) return;
+
+            var titre = "Réservation confirmée ✅";
+            var contenu = $"Votre réservation pour '{session.Cours.Nom}' le {session.DateHeure:dd/MM/yyyy à HH:mm} est confirmée.";
 
             db.Notifications.Add(new Notification
             {
-                Titre = "Réservation confirmée ✅",
-                Contenu = $"Votre réservation pour '{session.Cours.Nom}' le {session.DateHeure:dd/MM/yyyy à HH:mm} est confirmée.",
+                Titre = titre,
+                Contenu = contenu,
                 Type = "RESERVATION",
-                UtilisateurId = resa.MembreId
+                UtilisateurId = resa.MembreId,
+                DateEnvoi = DateTime.UtcNow,
+                // ✅ NOUVEAU — on lie la notification à la session et à la réservation
+                SessionId = resa.SessionCoursId,
+                ReservationId = resa.Id
             });
 
             await db.SaveChangesAsync();
-            logger.LogInformation("Notification de confirmation créée pour MembreId={Id}", resa.MembreId);
+
+            await _hubContext.Clients.User(resa.MembreId.ToString())
+                .SendAsync("ReceiveNotification", new { titre, contenu });
+
+            logger.LogInformation("Notification push envoyée au MembreId={Id}", resa.MembreId);
         }
 
         // ANNULATION DE RÉSERVATION
         public async Task EnvoyerAnnulation(Reservation resa)
         {
-            logger.LogInformation("EnvoyerAnnulation appelée pour ReservationId={Id}", resa.Id);
-
             var session = await db.Sessions
                 .Include(s => s.Cours)
                 .FirstOrDefaultAsync(s => s.Id == resa.SessionCoursId);
 
+            var titre = "Réservation annulée ❌";
+            var contenu = session?.Cours != null
+                    ? $"Votre réservation pour '{session.Cours.Nom}' le {session.DateHeure:dd/MM/yyyy à HH:mm} a été annulée."
+                    : "Votre réservation a été annulée.";
+
             db.Notifications.Add(new Notification
             {
-                Titre = "Réservation annulée ❌",
-                Contenu = session?.Cours != null
-                    ? $"Votre réservation pour '{session.Cours.Nom}' le {session.DateHeure:dd/MM/yyyy à HH:mm} a été annulée."
-                    : "Votre réservation a été annulée.",
+                Titre = titre,
+                Contenu = contenu,
                 Type = "ANNULATION",
-                UtilisateurId = resa.MembreId
+                UtilisateurId = resa.MembreId,
+                DateEnvoi = DateTime.UtcNow,
+                // ✅ NOUVEAU
+                SessionId = resa.SessionCoursId,
+                ReservationId = resa.Id
             });
 
             await db.SaveChangesAsync();
-            logger.LogInformation("Notification d'annulation créée pour MembreId={Id}", resa.MembreId);
+
+            await _hubContext.Clients.User(resa.MembreId.ToString())
+                .SendAsync("ReceiveNotification", new { titre, contenu });
         }
 
         // ANNULATION SESSION PAR ADMIN
         public async Task NotifierAnnulationSession(Session_Cours session)
         {
-            logger.LogInformation("NotifierAnnulationSession appelée pour SessionId={Id}", session.Id);
-
             if (session.Cours == null)
                 session = await db.Sessions.Include(s => s.Cours)
                     .FirstOrDefaultAsync(s => s.Id == session.Id) ?? session;
 
-            var membreIds = await db.Reservations
+            var reservations = await db.Reservations
                 .Where(r => r.SessionCoursId == session.Id && r.Statut == StatutReservation.Confirmee)
-                .Select(r => r.MembreId)
                 .ToListAsync();
 
-            foreach (var id in membreIds)
+            var titre = "Session annulée ❌";
+            var contenu = $"La session '{session.Cours?.Nom ?? "inconnue"}' le {session.DateHeure:dd/MM/yyyy à HH:mm} a été annulée par l'administration.";
+
+            foreach (var resa in reservations)
             {
                 db.Notifications.Add(new Notification
                 {
-                    Titre = "Session annulée ❌",
-                    Contenu = $"La session '{session.Cours?.Nom ?? "inconnue"}' le {session.DateHeure:dd/MM/yyyy à HH:mm} a été annulée par l'administration.",
+                    Titre = titre,
+                    Contenu = contenu,
                     Type = "ANNULATION",
-                    UtilisateurId = id
+                    UtilisateurId = resa.MembreId,
+                    DateEnvoi = DateTime.UtcNow,
+                    // ✅ NOUVEAU
+                    SessionId = session.Id,
+                    ReservationId = resa.Id
                 });
+
+                await _hubContext.Clients.User(resa.MembreId.ToString())
+                    .SendAsync("ReceiveNotification", new { titre, contenu });
             }
 
             await db.SaveChangesAsync();
-            logger.LogInformation("{Count} notification(s) créées pour SessionId={Id}", membreIds.Count, session.Id);
         }
     }
 }

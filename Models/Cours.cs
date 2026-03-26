@@ -1,24 +1,26 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace backend.Models
+namespace backend.Models;
+
+public class Cours
 {
-    public class Cours
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        [Required]
-        public string Nom { get; set; } = "";
+    [Required(ErrorMessage = "Le nom est obligatoire")]
+    [MaxLength(100)]
+    public string Nom { get; set; } = "";
 
-        public string? Description { get; set; }
+    public string? Description { get; set; }
 
-        [Range(1, 30)]
-        public int CapaciteMax { get; set; } = 20;
+    [Range(1, 30, ErrorMessage = "Capacite entre 1 et 30")]
+    public int CapaciteMax { get; set; } = 20;
 
-        public bool Actif { get; set; } = true;
+    public GenreCours Genre { get; set; } = GenreCours.Mixte;
 
-        public GenreCours Genre { get; set; }
+    public bool Actif { get; set; } = true;
 
-        // ✅ Ajout de { get; set; } — c'était un field, pas une property
-        public ICollection<Session_Cours> SessionsCours { get; set; } = new List<Session_Cours>();
-    }
+    public DateTime DateCreation { get; set; } = DateTime.UtcNow;
+
+    // Navigation — sessions de ce cours
+    public ICollection<Session_Cours> Sessions = new List<Session_Cours>();
 }

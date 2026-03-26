@@ -1,66 +1,72 @@
-﻿using Microsoft.EntityFrameworkCore;
-using backend.Data;
-using backend.Models;
+﻿using backend.Data;
 using backend.DTOs.Cours;
+using backend.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
-public class CoursService
+public class CoursService(AppDbContext db)
 {
-    private readonly AppDbContext db;
-
-    public CoursService(AppDbContext db)
+  
+    // SUPER ADMIN — CRUD COURS
+    ////////////////////////////////////////////////////////////////////////  Get tous les  cours  
+    public async Task<List<CoursResponseDto>> GetAll(
+        string? search = null,
+        GenreCours? genre = null)
     {
-        this.db = db;
-    }
-
-    // ── GET ALL ──────────────────────────────────────────
-    public async Task<List<CoursResponseDto>> GetAll(string? search = null, GenreCours? genre = null)
-    {
-        var query = db.Cours
-            .Include(c => c.SessionsCours)
-            .AsNoTracking()
-            .AsQueryable();
+        var q = db.Cours.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
-        {
-            var keyword = search.ToLower();
-            query = query.Where(c => c.Nom.ToLower().Contains(keyword));
-        }
+            q = q.Where(c => c.Nom.ToLower()
+                .Contains(search.ToLower()));
 
         if (genre.HasValue)
-        {
-            query = query.Where(c => c.Genre == genre.Value);
-        }
+            q = q.Where(c => c.Genre == genre.Value);
 
-        return await query
-                .Include(c => c.SessionsCours)
-
+        var list = await q
             .OrderBy(c => c.Nom)
-            .Select(c => MapToDto(c))
+            .AsNoTracking()
             .ToListAsync();
+
+        var ids = list.Select(c => c.Id).ToList();
+        var counts = await db.Sessions
+            .Where(s => ids.Contains(s.CoursId))
+            .GroupBy(s => s.CoursId)
+            .Select(g => new { CoursId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.CoursId, x => x.Count);
+
+        return list.Select(c => new CoursResponseDto(
+            c.Id, c.Nom, c.Description, c.CapaciteMax,
+            c.Genre.ToString(), GenreLabel(c.Genre),
+            c.Actif,
+            counts.GetValueOrDefault(c.Id, 0),
+            c.DateCreation
+        )).ToList();
     }
 
-    // ── GET BY ID ────────────────────────────────────────
+    ////////////////////////////////////////////////////////////////////////  Get tous cours par id  
     public async Task<CoursResponseDto> GetById(int id)
     {
-        var cours = await db.Cours
-            .Include(c => c.SessionsCours)
+        var c = await db.Cours
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id)
             ?? throw new KeyNotFoundException("Cours introuvable");
 
-        return MapToDto(cours);
+        var nbSessions = await db.Sessions
+            .CountAsync(s => s.CoursId == id);
+
+        return new CoursResponseDto(
+            c.Id, c.Nom, c.Description, c.CapaciteMax,
+            c.Genre.ToString(), GenreLabel(c.Genre),
+            c.Actif, nbSessions, c.DateCreation);
     }
 
-    // ── CREATE ───────────────────────────────────────────
+    ////////////////////////////////////////////////////////////////////////  Create cours  
     public async Task<CoursResponseDto> Create(CreateCoursDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Nom))
-            throw new ArgumentException("Nom obligatoire");
-
-        if (dto.CapaciteMax <= 0 || dto.CapaciteMax > 30)
-            throw new InvalidOperationException("Capacité max entre 1 et 30");
+        if (dto.CapaciteMax > 30)
+            throw new InvalidOperationException(
+                "Capacite max autorisee : 30");
 
         var cours = new Cours
         {
@@ -68,66 +74,54 @@ public class CoursService
             Description = dto.Description?.Trim(),
             CapaciteMax = dto.CapaciteMax,
             Genre = dto.Genre,
-            Actif = true,
-            //DateCreation = DateTime.UtcNow
+            Actif = true
         };
 
         db.Cours.Add(cours);
         await db.SaveChangesAsync();
-
-        return MapToDto(cours);
+        return new CoursResponseDto(
+            cours.Id, cours.Nom, cours.Description, cours.CapaciteMax,
+            cours.Genre.ToString(), GenreLabel(cours.Genre),
+            cours.Actif, 0, cours.DateCreation);
     }
 
-    // ── UPDATE ───────────────────────────────────────────
+    ////////////////////////////////////////////////////////////////////////  Update cours  
     public async Task<CoursResponseDto> Update(int id, UpdateCoursDto dto)
     {
-        var cours = await db.Cours
-            .Include(c => c.SessionsCours)
-            .FirstOrDefaultAsync(c => c.Id == id)
+        var c = await db.Cours.FindAsync(id)
             ?? throw new KeyNotFoundException("Cours introuvable");
 
-        if (dto.Nom != null)
-            cours.Nom = dto.Nom.Trim();
-
-        if (dto.Description != null)
-            cours.Description = dto.Description.Trim();
-
-        if (dto.CapaciteMax.HasValue)
-        {
-            if (dto.CapaciteMax <= 0 || dto.CapaciteMax > 30)
-                throw new InvalidOperationException("Capacité max entre 1 et 30");
-
-            cours.CapaciteMax = dto.CapaciteMax.Value;
-        }
-
-        if (dto.Genre.HasValue)
-            cours.Genre = dto.Genre.Value;
-
-        if (dto.Actif.HasValue)
-            cours.Actif = dto.Actif.Value;
+        if (dto.Nom != null) c.Nom = dto.Nom.Trim();
+        if (dto.Description != null) c.Description = dto.Description;
+        if (dto.CapaciteMax != null) c.CapaciteMax = dto.CapaciteMax.Value;
+        if (dto.Genre != null) c.Genre = dto.Genre.Value;
+        if (dto.Actif != null) c.Actif = dto.Actif.Value;
 
         await db.SaveChangesAsync();
-
-        return MapToDto(cours);
+        return await GetById(id);
     }
 
-    // ── DELETE ───────────────────────────────────────────
+    ////////////////////////////////////////////////////////////////////////  delete cours  
     public async Task Delete(int id)
     {
-        var cours = await db.Cours
-            .Include(c => c.SessionsCours)
-            .FirstOrDefaultAsync(c => c.Id == id)
+        var c = await db.Cours.FindAsync(id)
             ?? throw new KeyNotFoundException("Cours introuvable");
 
-        if (cours.SessionsCours.Any(s => s.Statut == "Planifie"))
-            throw new InvalidOperationException("Impossible : sessions planifiées existantes");
+        var hasSessions = await db.Sessions
+            .AnyAsync(s => s.CoursId == id && s.Statut == "Planifie");
 
-        db.Cours.Remove(cours);
+        if (hasSessions)
+            throw new InvalidOperationException(
+                "Impossible : sessions planifiees existantes");
+
+        db.Cours.Remove(c);
         await db.SaveChangesAsync();
     }
+    // SUPER ADMIN — PLANIFIER SESSION
+    ////////////////////////////////////////////////////////////////////////  Planifier sessions
 
-    // ── PLANIFIER SESSION ────────────────────────────────
-    public async Task<SessionResponseDto> PlanifierSession(PlanifierSessionDto dto)
+    public async Task<SessionResponseDto> PlanifierSession(
+        PlanifierSessionDto dto)
     {
         var cours = await db.Cours.FindAsync(dto.CoursId)
             ?? throw new KeyNotFoundException("Cours introuvable");
@@ -156,122 +150,104 @@ public class CoursService
         return MapSessionToDto(session);
     }
 
-    // ── ANNULER SESSION ─────────────────────────────────
+    // ADMINISTRATEUR — GÉRER SESSIONS
+    ////////////////////////////////////////////////////////////////////////  Annuler une session 
     public async Task AnnulerSession(int sessionId)
     {
-        var session = await db.Sessions.FindAsync(sessionId)
+        var s = await db.Sessions.FindAsync(sessionId)
             ?? throw new KeyNotFoundException("Session introuvable");
 
-        if (session.Statut == "Annule")
-            throw new InvalidOperationException("Session déjà annulée");
+        if (s.Statut == "Annule")
+            throw new InvalidOperationException("Deja annulee");
 
-        session.Statut = "Annule";
+        s.Statut = "Annule";
         await db.SaveChangesAsync();
     }
 
-    // ── MODIFIER HORAIRE ────────────────────────────────
-    public async Task<SessionResponseDto> ModifierHoraire(int sessionId, ModifierHoraireDto dto)
+    ////////////////////////////////////////////////////////////////////////  Modifier l'horaire d'une session 
+    public async Task<SessionResponseDto> ModifierHoraire(
+        int sessionId, ModifierHoraireDto dto)
     {
-        var session = await db.Sessions
+        var s = await db.Sessions
             .Include(s => s.Cours)
             .Include(s => s.Coach)
             .FirstOrDefaultAsync(s => s.Id == sessionId)
             ?? throw new KeyNotFoundException("Session introuvable");
 
-        if (session.Statut == "Annule")
-            throw new InvalidOperationException("Session annulée");
+        if (s.Statut == "Annule")
+            throw new InvalidOperationException(
+                "Session annulee, modification impossible");
 
-        session.DateHeure = dto.NouvelleDate;
-
+        s.DateHeure = dto.NouvelleDate;
         await db.SaveChangesAsync();
-
-        return MapSessionToDto(session);
+        return MapSessionToDto(s);
     }
 
-    // ── SESSIONS DISPONIBLES ────────────────────────────
-    public async Task<List<SessionResponseDto>> GetSessionsDisponibles(string? genreMembre = null)
+    // MEMBRE — CONSULTER SESSIONS DISPONIBLES
+
+    ////////////////////////////////////////////////////////////////////////  Get Sessions Disponibles
+    public async Task<List<SessionResponseDto>> GetSessionsDisponibles(
+        string? genreMembre = null)
     {
-        var query = db.Sessions
+        var q = db.Sessions
             .Include(s => s.Cours)
             .Include(s => s.Coach)
-            .AsNoTracking()
             .Where(s =>
                 s.Statut == "Planifie" &&
                 s.PlacesDisponibles > 0 &&
                 s.DateHeure > DateTime.UtcNow);
 
         if (!string.IsNullOrEmpty(genreMembre))
-{
+        {
             var g = genreMembre.ToLower().Trim();
-
-            query = query.Where(s =>
+            q = q.Where(s =>
                 s.Cours!.Genre == GenreCours.Mixte ||
                 (g == "homme" && s.Cours!.Genre == GenreCours.Homme) ||
                 (g == "femme" && s.Cours!.Genre == GenreCours.Femme));
         }
 
-        return await query
+        var list = await q
             .OrderBy(s => s.DateHeure)
-            .Select(s => MapSessionToDto(s))
+            .AsNoTracking()
             .ToListAsync();
+
+        return list.Select(MapSessionToDto).ToList();
     }
 
-    // ── SESSIONS PAR COURS ──────────────────────────────
+    ////////////////////////////////////////////////////////////////////////  Get Sessions By Cours
     public async Task<List<SessionResponseDto>> GetSessionsByCours(int coursId)
     {
-        // Utiliser FirstOrDefault au lieu de Any pour être sûr de ce qu'on cherche
-        var cours = await db.Cours.FirstOrDefaultAsync(c => c.Id == coursId);
+        var list = await db.Sessions
+                .Include(s => s.Cours)
+                .Include(s => s.Coach)
+                .AsNoTracking()
+                .Where(s => s.CoursId == coursId)
+                .OrderBy(s => s.DateHeure)
+                .ToListAsync();
 
-        if (cours == null)
-        {
-            // Debug: Affichez tous les IDs disponibles dans la console backend pour comparer
-            var allIds = string.Join(", ", db.Cours.Select(c => c.Id));
-            throw new KeyNotFoundException($"Le cours ID {coursId} est introuvable. IDs disponibles : {allIds}");
-        }
-
-        return await db.Sessions
-            .Include(s => s.Cours)
-            .Include(s => s.Coach)
-            .Where(s => s.CoursId == coursId)
-            .OrderBy(s => s.DateHeure)
-            .Select(s => MapSessionToDto(s))
-            .ToListAsync();
+        return list.Select(MapSessionToDto).ToList();
     }
 
-    // ── MAPPINGS ────────────────────────────────────────
+    ////////////////////////////////////////////////////////////////////////  Genre Label
+
+
+
     private static string GenreLabel(GenreCours g) => g switch
     {
         GenreCours.Homme => "Hommes uniquement",
         GenreCours.Femme => "Femmes uniquement",
         _ => "Mixte"
     };
-
-    private static CoursResponseDto MapToDto(Cours c) => new(
-        c.Id,
-        c.Nom,
-        c.Description,
-        c.CapaciteMax,
-        c.Genre.ToString(),
-        GenreLabel(c.Genre),
-        c.Actif,
-        c.SessionsCours?.Count ?? 0
-       //, c.DateCreation
-    );
+    ////////////////////////////////////////////////////////////////////////   Map Session To Dto
 
     private static SessionResponseDto MapSessionToDto(Session_Cours s) => new(
         s.Id,
-        s.CoursId,
-        s.Cours!.Nom,
-        s.Cours!.Genre.ToString(),
-        GenreLabel(s.Cours!.Genre),
+        s.CoursId, s.Cours!.Nom,
+        s.Cours!.Genre.ToString(), GenreLabel(s.Cours!.Genre),
         s.Cours!.CapaciteMax,
-        s.CoachId,
-        s.Coach!.Nom,
-        s.Coach!.Prenom,
+        s.CoachId, s.Coach!.Nom, s.Coach!.Prenom,
         $"{s.Coach!.Prenom} {s.Coach!.Nom}",
         s.Coach!.Specialite,
-        s.DateHeure,
-        s.PlacesDisponibles,
-        s.Statut
+        s.DateHeure, s.PlacesDisponibles, s.Statut
     );
 }

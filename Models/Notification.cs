@@ -9,5 +9,9 @@
         public int UtilisateurId { get; set; }
         public DateTime DateEnvoi { get; set; } = DateTime.UtcNow;
         public bool Lue { get; set; } = false;
+
+        // ✅ Liens vers la session et la réservation
+        public int? SessionId { get; set; }
+        public int? ReservationId { get; set; }
     }
 }

@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260320233503_table_sprint2")]
-    partial class table_sprint2
+    [Migration("20260325231218_AddSessionIdToNotification")]
+    partial class AddSessionIdToNotification
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -80,6 +80,9 @@ namespace backend.Migrations
                     b.Property<int>("CapaciteMax")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
@@ -88,7 +91,8 @@ namespace backend.Migrations
 
                     b.Property<string>("Nom")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
 
@@ -147,6 +151,12 @@ namespace backend.Migrations
 
                     b.Property<bool>("Lue")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<int?>("ReservationId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SessionId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Titre")
                         .IsRequired()
