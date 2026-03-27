@@ -4,6 +4,7 @@
     {
         EnAttente=1,
         Confirmee=0,
-        Annulee=2
+        Annulee=2,
+        Rejetee = 3  // <-- Ajoutez cette ligne
     }
 }

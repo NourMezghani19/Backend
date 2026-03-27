@@ -8,7 +8,7 @@
         public int SessionCoursId { get; set; }
         public Session_Cours? SessionCours { get; set; }
         public DateTime DateReservation { get; set; } = DateTime.UtcNow;
-        public StatutReservation Statut { get; set; } = StatutReservation.Confirmee;
+        public StatutReservation Statut { get; set; } = StatutReservation.EnAttente;
 
     }
 }
