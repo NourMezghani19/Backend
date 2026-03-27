@@ -94,7 +94,7 @@ namespace backend.Services
                     .FirstOrDefaultAsync(s => s.Id == session.Id) ?? session;
 
             var reservations = await db.Reservations
-                .Where(r => r.SessionCoursId == session.Id && r.Statut == StatutReservation.Confirmee)
+                .Where(r => r.SessionCoursId == session.Id && r.Statut == StatutReservation.EnAttente)
                 .ToListAsync();
 
             var titre = "Session annulée ❌";
