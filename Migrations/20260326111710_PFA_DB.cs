@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class h1 : Migration
+    public partial class PFA_DB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -124,6 +124,32 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "EmploisDuTemps",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CoachId = table.Column<int>(type: "int", nullable: false),
+                    Jour = table.Column<int>(type: "int", nullable: false),
+                    HeureDebut = table.Column<TimeSpan>(type: "time(6)", nullable: false),
+                    HeureFin = table.Column<TimeSpan>(type: "time(6)", nullable: false),
+                    Note = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreeLe = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmploisDuTemps", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EmploisDuTemps_Coachs_CoachId",
+                        column: x => x.CoachId,
+                        principalTable: "Coachs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Sessions",
                 columns: table => new
                 {
@@ -152,37 +178,6 @@ namespace backend.Migrations
                         name: "FK_Sessions_Cours_CoursId",
                         column: x => x.CoursId,
                         principalTable: "Cours",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "EmploisDuTemps",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    CoachId = table.Column<int>(type: "int", nullable: false),
-                    SessionId = table.Column<int>(type: "int", nullable: false),
-                    Jour = table.Column<int>(type: "int", nullable: false),
-                    HeureDebut = table.Column<TimeSpan>(type: "time(6)", nullable: false),
-                    HeureFin = table.Column<TimeSpan>(type: "time(6)", nullable: false),
-                    Recurrent = table.Column<bool>(type: "tinyint(1)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EmploisDuTemps", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_EmploisDuTemps_Coachs_CoachId",
-                        column: x => x.CoachId,
-                        principalTable: "Coachs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EmploisDuTemps_Sessions_SessionId",
-                        column: x => x.SessionId,
-                        principalTable: "Sessions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -221,11 +216,6 @@ namespace backend.Migrations
                 name: "IX_EmploisDuTemps_CoachId",
                 table: "EmploisDuTemps",
                 column: "CoachId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EmploisDuTemps_SessionId",
-                table: "EmploisDuTemps",
-                column: "SessionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reservations_MembreId",
