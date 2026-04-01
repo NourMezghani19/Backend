@@ -140,5 +140,16 @@ namespace backend.Services.Coach
             NbSessions = 0, // éviter de charger les sessions juste pour compter
             DateCreation = c.DateCreation
         };
+        //modification de la disponibilité du coach
+         public async Task<CoachResponseDto> ToggleDisponibilite(int id)
+         {
+             var coach = await this.db.Coachs.FindAsync(id)
+                 ?? throw new KeyNotFoundException("Coach introuvable");
+
+             coach.Disponible = !coach.Disponible;  // toggle
+             await this.db.SaveChangesAsync();
+             return MapToDto(coach);
+         }
+     
     }
 }

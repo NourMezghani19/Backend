@@ -25,6 +25,7 @@ namespace backend.Controllers.Reservation
         [Authorize(Roles = "Membre")]
         public async Task<IActionResult> MesReservations()
         {
+            await svc.TerminerSessionsPassees(); // On termine d'abord les sessions passées pour que le membre ait une vue à jour
             var membreId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var reservations = await svc.GetMesReservations(membreId);
             return Ok(reservations);

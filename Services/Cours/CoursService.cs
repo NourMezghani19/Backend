@@ -129,14 +129,20 @@ public class CoursService(AppDbContext db)
 
     public async Task<SessionResponseDto> PlanifierSession(PlanifierSessionDto dto)
     {
+
         var cours = await db.Cours.FindAsync(dto.CoursId)
             ?? throw new KeyNotFoundException("Cours introuvable");
+        // ✅ Vérification cours actif
+      /*  if (!cours.Actif)
+            throw new InvalidOperationException(
+                "Impossible de planifier : le cours est inactif");*/
 
         var coach = await db.Coachs.FindAsync(dto.CoachId)
             ?? throw new KeyNotFoundException("Coach introuvable");
+        // ✅ Vérification coach disponible (déjà existante)
+       /* if (!coach.Disponible)
+            throw new InvalidOperationException("Coach non disponible");*/
 
-        if (!coach.Disponible)
-            throw new InvalidOperationException("Coach non disponible");
 
         // --- NOUVELLE VALIDATION ANTI-CHEVAUCHEMENT ---
         var debut = TimeSpan.Parse(dto.HeureDebut);
@@ -217,8 +223,10 @@ public class CoursService(AppDbContext db)
             .Include(s => s.Cours)
             .Include(s => s.Coach)
             .Where(s =>
-                s.Statut == "Planifie" &&
-                s.PlacesDisponibles > 0);
+                 s.Statut == "Planifie" &&
+                s.PlacesDisponibles > 0 &&
+                s.Cours!.Actif &&  
+                s.Coach!.Disponible);
 
         if (!string.IsNullOrEmpty(genreMembre))
         {
@@ -266,14 +274,23 @@ public class CoursService(AppDbContext db)
 
     ////////////////////////////////////////////////////////////////////////  Genre Label
 
-
-
     private static string GenreLabel(GenreCours g) => g switch
     {
         GenreCours.Homme => "Hommes uniquement",
         GenreCours.Femme => "Femmes uniquement",
         _ => "Mixte"
     };
+    // modification status
+     public async Task<CoursResponseDto> ToggleActif(int id)
+     {
+         var c = await db.Cours.FindAsync(id)
+             ?? throw new KeyNotFoundException("Cours introuvable");
+
+         c.Actif = !c.Actif;
+         await db.SaveChangesAsync();
+         return await GetById(id);
+     }
+   
     ////////////////////////////////////////////////////////////////////////   Map Session To Dto
 
     private static SessionResponseDto MapSessionToDto(Session_Cours s) => new(

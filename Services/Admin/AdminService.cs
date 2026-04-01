@@ -64,7 +64,15 @@ namespace backend.Services.Admin
             if (existe)
                 throw new InvalidOperationException(
                     $"Un compte avec l'email '{dto.Email}' existe déjà");
-
+            // Vérification téléphone dupliqué
+            if (!string.IsNullOrWhiteSpace(dto.Telephone))
+            {
+                var telExiste = await db.Membres
+                    .AnyAsync(m => m.Telephone == dto.Telephone.Trim());
+                if (telExiste)
+                    throw new InvalidOperationException(
+                        "Ce numéro de téléphone est déjà utilisé");
+            }
             var motDePasseTemp = GenererMotDePasse();
 
             var membre = new Membre

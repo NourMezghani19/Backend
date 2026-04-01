@@ -5,6 +5,7 @@
         EnAttente=1,
         Confirmee=0,
         Annulee=2,
-        Rejetee = 3  // <-- Ajoutez cette ligne
+        Rejetee = 3 ,
+        Terminee = 4
     }
 }

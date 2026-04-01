@@ -176,7 +176,35 @@ namespace backend.Services.EmploiDuTemps
                 .OrderBy(c => c.Prenom)
                 .ToList();
         }
+        // ── 6. MODIFIER ───────────────────────────────────────────────
+        public async Task<CreneauResponseDto> Modifier(int id, CreerCreneauDto dto)
+        {
+            var entite = await this.db.EmploisDuTemps.FindAsync(id)
+                ?? throw new KeyNotFoundException($"Créneau #{id} introuvable.");
 
+            if (dto.HeureDebut >= dto.HeureFin)
+                throw new ArgumentException("L'heure de début doit être avant l'heure de fin.");
+
+            // Conflit : même coach, même jour, chevauchement — en excluant le créneau lui-même
+            var conflit = await this.db.EmploisDuTemps.AnyAsync(e =>
+                e.Id != id &&
+                e.CoachId == entite.CoachId &&
+                e.Jour == entite.Jour &&
+                e.HeureDebut < dto.HeureFin &&
+                e.HeureFin > dto.HeureDebut);
+
+            if (conflit)
+                throw new InvalidOperationException(
+                    "Conflit : ce coach a déjà un créneau qui chevauche cet horaire ce jour.");
+
+            entite.HeureDebut = dto.HeureDebut;
+            entite.HeureFin = dto.HeureFin;
+            entite.Note = dto.Note;
+
+            await this.db.SaveChangesAsync();
+            await this.db.Entry(entite).Reference(e => e.Coach).LoadAsync();
+            return MapToResponse(entite);
+        }
         // ── 7. STATS ──────────────────────────────────────────────
         public async Task<List<StatsCoachDto>> GetStats()
         {

@@ -81,5 +81,26 @@ namespace backend.Controllers.EmploiDuTemps
             var result = await this.svc.GetStats();
             return Ok(result);
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Modifier(int id, [FromBody] CreerCreneauDto dto)
+        {
+            try
+            {
+                var result = await this.svc.Modifier(id, dto);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+        }
     }
 }

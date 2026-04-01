@@ -28,14 +28,10 @@ namespace backend.Services.ReservationService
                 {
                     Id = r.Id,
                     MembreId = r.MembreId,
-                    // Assurez-vous que ces champs existent dans votre ReservationResponseDto
-                    // Sinon, ajoutez-les ou utilisez des propriétés dynamiques
                     MembreNom = r.Membre!.Nom,
                     MembrePrenom = r.Membre!.Prenom,
                     SessionId = r.SessionCoursId,
                     NomCours = r.SessionCours!.Cours!.Nom,
-                    // ✅ AJOUTE CES DEUX LIGNES ICI :
-                    // Dans GetAllReservationsWithDetails (lignes 38-39 sur ton image)
                     HeureDebut = r.SessionCours.HeureDebut.ToString(@"hh\:mm"),
                     HeureFin = r.SessionCours.HeureFin.ToString(@"hh\:mm"),
                     Statut = r.Statut.ToString(),
@@ -44,7 +40,6 @@ namespace backend.Services.ReservationService
                 .ToListAsync();
         }
 
-        // --- SECTION ADMIN : CONFIRMER OU ANNULER ---
         // --- SECTION ADMIN : CONFIRMER OU ANNULER ---
         public async Task<(bool Success, string Message)> ChangerStatut(int id, string nouveauStatut)
         {
@@ -56,7 +51,6 @@ namespace backend.Services.ReservationService
 
             if (resa == null) return (false, "Réservation introuvable");
 
-            // 🚩 Correction de la comparaison : on gère "Rejete" et "Rejetee"
             if (nouveauStatut == "Confirmee")
             {
                 resa.Statut = StatutReservation.Confirmee;
@@ -64,66 +58,62 @@ namespace backend.Services.ReservationService
             }
             else if (nouveauStatut == "Rejete" || nouveauStatut == "Rejetee" )
             {
-                // On rend la place SEULEMENT si elle n'était pas déjà annulée
-                if (resa.Statut != StatutReservation.Annulee)
+             
+               if (resa.Statut == StatutReservation.EnAttente ||
+            resa.Statut == StatutReservation.Confirmee)
                 {
                     if (resa.SessionCours != null) resa.SessionCours.PlacesDisponibles++;
                 }
 
-                // On force le statut à Annulee (ou Rejete si ton Enum le possède)
-                resa.Statut = StatutReservation.Annulee;
+                resa.Statut = StatutReservation.Rejetee; 
                 await notif.EnvoyerAnnulation(resa);
             }
 
-            // ✅ On sauvegarde TOUJOURS les changements
             await db.SaveChangesAsync();
             return (true, $"La demande a été traitée ({nouveauStatut})");
         }
 
-        // --- RÉSERVER (EXISTANT) ---
         // --- RÉSERVER (CÔTÉ MEMBRE) ---
         public async Task<(bool Success, string Message, ReservationResponseDto? Data)> Effectuer(CreateReservationDto dto)
-        {
-            var session = await db.Sessions
-                .Include(s => s.Cours)
-                .FirstOrDefaultAsync(s => s.Id == dto.SessionId);
+         {
+             var session = await db.Sessions
+                 .Include(s => s.Cours)
+                 .FirstOrDefaultAsync(s => s.Id == dto.SessionId);
 
-            if (session == null) return (false, "Session introuvable", null);
-            if (session.PlacesDisponibles <= 0) return (false, "La session est complète", null);
+             if (session == null) return (false, "Session introuvable", null);
+             if (session.PlacesDisponibles <= 0) return (false, "La session est complète", null);
 
-            var resa = new Reservation
-            {
-                MembreId = dto.MembreId,
-                SessionCoursId = dto.SessionId,
-                DateReservation = DateTime.Now, // Assurez-vous d'assigner la date actuelle
-                Statut = StatutReservation.EnAttente // État initial correct
-            };
+             var resa = new Reservation
+             {
+                 MembreId = dto.MembreId,
+                 SessionCoursId = dto.SessionId,
+                 DateReservation = DateTime.Now,
+                 Statut = StatutReservation.EnAttente 
+             };
 
-            // On décrémente la place pour la bloquer en attendant la validation
-            session.PlacesDisponibles--;
+             session.PlacesDisponibles--;
 
-            db.Reservations.Add(resa);
-            await db.SaveChangesAsync();
+             db.Reservations.Add(resa);
+             await db.SaveChangesAsync();
 
-            // ❌ SUPPRIMÉ : await notif.EnvoyerConfirmation(resa); 
-            // La notification sera envoyée plus tard par l'admin via ChangerStatut
 
-            var responseDto = new ReservationResponseDto
-            {
-                Id = resa.Id,
-                MembreId = resa.MembreId,
-                SessionId = resa.SessionCoursId,
-                NomCours = session.Cours!.Nom,
-                HeureDebut = session.HeureDebut.ToString(@"hh\:mm"),
-                HeureFin = session.HeureFin.ToString(@"hh\:mm"),
+             var responseDto = new ReservationResponseDto
+             {
+                 Id = resa.Id,
+                 MembreId = resa.MembreId,
+                 SessionId = resa.SessionCoursId,
+                 NomCours = session.Cours!.Nom,
+                 HeureDebut = session.HeureDebut.ToString(@"hh\:mm"),
+                 HeureFin = session.HeureFin.ToString(@"hh\:mm"),
 
-                Statut = resa.Statut.ToString(), // Sera "EnAttente"
-                PlacesRestantes = session.PlacesDisponibles
-            };
+                 Statut = resa.Statut.ToString(), 
+                 PlacesRestantes = session.PlacesDisponibles
+             };
 
-            return (true, "Demande de réservation envoyée. En attente de validation par l'admin.", responseDto);
-        }
-
+             return (true, "Demande de réservation envoyée. En attente de validation par l'admin.", responseDto);
+         }
+        
+      
 
         // --- ANNULER (MEMBRE) ---
         public async Task<(bool Success, string Message)> Annuler(int id, int membreId)
@@ -134,21 +124,24 @@ namespace backend.Services.ReservationService
 
             if (resa == null) return (false, "Réservation introuvable");
 
-            // On ne rend une place que si la réservation était active (Confirmée ou En Attente)
-            if (resa.Statut != StatutReservation.Annulee)
+            if (resa.Statut == StatutReservation.Annulee)
             {
-                resa.SessionCours!.PlacesDisponibles++;
+                return (false, "Déjà annulée");
             }
 
-            // On supprime la ligne de la base de données
-            db.Reservations.Remove(resa);
+            if (resa.Statut == StatutReservation.EnAttente ||
+                resa.Statut == StatutReservation.Confirmee)
+            {
+                if (resa.SessionCours != null)
+                    resa.SessionCours.PlacesDisponibles++;
+            }
+
+            resa.Statut = StatutReservation.Annulee;
 
             await db.SaveChangesAsync();
 
-            // ❌ SUPPRIMÉ : await notif.EnvoyerAnnulation(resa); 
-            // On ne notifie pas le membre pour une action qu'il a faite lui-même.
-
             return (true, "Réservation annulée avec succès");
+
         }
 
         // --- MES RÉSERVATIONS (MEMBRE) ---
@@ -157,7 +150,11 @@ namespace backend.Services.ReservationService
             return await db.Reservations
                 .Include(r => r.SessionCours)
                 .ThenInclude(s => s!.Cours)
-                .Where(r => r.MembreId == membreId)
+                //.Where(r => r.MembreId == membreId)
+                //.Where(r => r.MembreId == membreId && r.Statut != StatutReservation.Annulee)
+                .Where(r => r.MembreId == membreId
+                     && r.Statut != StatutReservation.Annulee
+                     && r.Statut != StatutReservation.Terminee)
                 .OrderByDescending(r => r.DateReservation)
                 .Select(r => new ReservationResponseDto
                 {
@@ -171,6 +168,50 @@ namespace backend.Services.ReservationService
                     PlacesRestantes = r.SessionCours.PlacesDisponibles
                 })
                 .ToListAsync();
+        }
+        // --- TERMINER LES RÉSERVATIONS DES SESSIONS PASSÉES ---
+        public async Task TerminerSessionsPassees()
+        {
+            var maintenant = DateTime.Now;
+            var jourActuel = maintenant.DayOfWeek.ToString(); // "Monday", "Tuesday"...
+            var heureActuelle = maintenant.TimeOfDay;
+
+            // Map anglais → français
+            var jourMap = new Dictionary<string, string>
+    {
+        { "Monday",    "Lundi"    },
+        { "Tuesday",   "Mardi"    },
+        { "Wednesday", "Mercredi" },
+        { "Thursday",  "Jeudi"    },
+        { "Friday",    "Vendredi" },
+        { "Saturday",  "Samedi"   },
+        { "Sunday",    "Dimanche" }
+    };
+
+            var jourFr = jourMap[jourActuel];
+
+            // Réservations confirmées dont la session est aujourd'hui ET l'heure de fin est passée
+            var reservationsTerminees = await db.Reservations
+                .Include(r => r.SessionCours)
+                .Where(r =>
+                    r.Statut == StatutReservation.Confirmee &&
+                    r.SessionCours != null &&
+                    r.SessionCours.JourSemaine == jourFr &&
+                    r.SessionCours.HeureFin < heureActuelle
+                )
+                .ToListAsync();
+
+            foreach (var resa in reservationsTerminees)
+            {
+                resa.Statut = StatutReservation.Terminee;
+
+                // Remet la place disponible pour la semaine prochaine
+                if (resa.SessionCours != null)
+                    resa.SessionCours.PlacesDisponibles++;
+            }
+
+            if (reservationsTerminees.Any())
+                await db.SaveChangesAsync();
         }
     }
 }

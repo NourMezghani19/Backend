@@ -158,4 +158,22 @@ public class CoursController(CoursService svc) : ControllerBase
         // On passe 'null' ou on appelle une surcharge du service qui ignore le genre.
         return Ok(await svc.GetSessionsDisponibles(null));
     }
+    //modification de status
+    [HttpPatch("{id:int}/actif")]
+    public async Task<IActionResult> ToggleActif(int id)
+    {
+        try
+        {
+            var result = await svc.ToggleActif(id);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erreur interne" });
+        }
+    }
 }
