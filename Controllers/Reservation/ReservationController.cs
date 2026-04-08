@@ -14,10 +14,26 @@ namespace backend.Controllers.Reservation
 
         [HttpPost]
         [Authorize(Roles = "Membre")]
+        /* public async Task<IActionResult> Effectuer(CreateReservationDto dto)
+         {
+             var (success, message, data) = await svc.Effectuer(dto);
+             if (!success) return BadRequest(new { message });
+             return Ok(new { message, data });
+         }*/
+        // version avec le controle des genres pour specialiser les messages d'erreur
         public async Task<IActionResult> Effectuer(CreateReservationDto dto)
         {
             var (success, message, data) = await svc.Effectuer(dto);
-            if (!success) return BadRequest(new { message });
+
+            if (!success)
+            {
+                // Erreur d'accès genre → 403
+                if (message.Contains("réservé aux"))
+                    return StatusCode(403, new { message });
+
+                return BadRequest(new { message });
+            }
+
             return Ok(new { message, data });
         }
 

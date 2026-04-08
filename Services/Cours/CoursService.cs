@@ -234,7 +234,8 @@ public class CoursService(AppDbContext db)
             q = q.Where(s =>
                 s.Cours!.Genre == GenreCours.Mixte ||
                 (g == "homme" && s.Cours!.Genre == GenreCours.Homme) ||
-                (g == "femme" && s.Cours!.Genre == GenreCours.Femme));
+                (g == "femme" && s.Cours!.Genre == GenreCours.Femme) || 
+                (g == "enfant" && s.Cours!.Genre == GenreCours.Enfant));
         }
 
         var sessions = await q.ToListAsync(); // On récupère la liste en mémoire pour trier
@@ -278,6 +279,7 @@ public class CoursService(AppDbContext db)
     {
         GenreCours.Homme => "Hommes uniquement",
         GenreCours.Femme => "Femmes uniquement",
+        GenreCours.Enfant => "Enfants uniquement",
         _ => "Mixte"
     };
     // modification status

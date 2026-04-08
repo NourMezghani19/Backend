@@ -4,6 +4,7 @@
     {
         Mixte=0,
         Homme=1,
-        Femme= 2
+        Femme= 2,
+        Enfant= 3
     }
 }

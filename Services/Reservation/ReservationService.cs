@@ -74,46 +74,98 @@ namespace backend.Services.ReservationService
         }
 
         // --- RÉSERVER (CÔTÉ MEMBRE) ---
+        /* public async Task<(bool Success, string Message, ReservationResponseDto? Data)> Effectuer(CreateReservationDto dto)
+          {
+              var session = await db.Sessions
+                  .Include(s => s.Cours)
+                  .FirstOrDefaultAsync(s => s.Id == dto.SessionId);
+
+              if (session == null) return (false, "Session introuvable", null);
+              if (session.PlacesDisponibles <= 0) return (false, "La session est complète", null);
+
+              var resa = new Reservation
+              {
+                  MembreId = dto.MembreId,
+                  SessionCoursId = dto.SessionId,
+                  DateReservation = DateTime.Now,
+                  Statut = StatutReservation.EnAttente 
+              };
+
+              session.PlacesDisponibles--;
+
+              db.Reservations.Add(resa);
+              await db.SaveChangesAsync();
+
+
+              var responseDto = new ReservationResponseDto
+              {
+                  Id = resa.Id,
+                  MembreId = resa.MembreId,
+                  SessionId = resa.SessionCoursId,
+                  NomCours = session.Cours!.Nom,
+                  HeureDebut = session.HeureDebut.ToString(@"hh\:mm"),
+                  HeureFin = session.HeureFin.ToString(@"hh\:mm"),
+
+                  Statut = resa.Statut.ToString(), 
+                  PlacesRestantes = session.PlacesDisponibles
+              };
+
+              return (true, "Demande de réservation envoyée. En attente de validation par l'admin.", responseDto);
+          }*/
+        // Version avec controle sur le genre de membre
         public async Task<(bool Success, string Message, ReservationResponseDto? Data)> Effectuer(CreateReservationDto dto)
-         {
-             var session = await db.Sessions
-                 .Include(s => s.Cours)
-                 .FirstOrDefaultAsync(s => s.Id == dto.SessionId);
+        {
+            var session = await db.Sessions
+                .Include(s => s.Cours)
+                .FirstOrDefaultAsync(s => s.Id == dto.SessionId);
 
-             if (session == null) return (false, "Session introuvable", null);
-             if (session.PlacesDisponibles <= 0) return (false, "La session est complète", null);
+            if (session == null) return (false, "Session introuvable", null);
+            if (session.PlacesDisponibles <= 0) return (false, "La session est complète", null);
 
-             var resa = new Reservation
-             {
-                 MembreId = dto.MembreId,
-                 SessionCoursId = dto.SessionId,
-                 DateReservation = DateTime.Now,
-                 Statut = StatutReservation.EnAttente 
-             };
+            // ── VALIDATION GENRE ──────────────────────────────────────────
+            var membre = await db.Membres.FindAsync(dto.MembreId);
+            if (membre == null) return (false, "Membre introuvable", null);
 
-             session.PlacesDisponibles--;
+            var genreCours = session.Cours!.Genre;
+            var genreMembre = membre.genre?.ToLower().Trim();
 
-             db.Reservations.Add(resa);
-             await db.SaveChangesAsync();
+            if (genreCours == GenreCours.Homme && genreMembre != "homme")
+                return (false, "Ce cours est réservé aux hommes uniquement.", null);
+
+            if (genreCours == GenreCours.Femme && genreMembre != "femme")
+                return (false, "Ce cours est réservé aux femmes uniquement.", null);
+
+            // GenreCours.Mixte et GenreCours.Enfant → aucune restriction
+            // ─────────────────────────────────────────────────────────────
+
+            var resa = new Reservation
+            {
+                MembreId = dto.MembreId,
+                SessionCoursId = dto.SessionId,
+                DateReservation = DateTime.Now,
+                Statut = StatutReservation.EnAttente
+            };
+
+            session.PlacesDisponibles--;
+            db.Reservations.Add(resa);
+            await db.SaveChangesAsync();
+
+            var responseDto = new ReservationResponseDto
+            {
+                Id = resa.Id,
+                MembreId = resa.MembreId,
+                SessionId = resa.SessionCoursId,
+                NomCours = session.Cours!.Nom,
+                HeureDebut = session.HeureDebut.ToString(@"hh\:mm"),
+                HeureFin = session.HeureFin.ToString(@"hh\:mm"),
+                Statut = resa.Statut.ToString(),
+                PlacesRestantes = session.PlacesDisponibles
+            };
+
+            return (true, "Demande de réservation envoyée. En attente de validation par l'admin.", responseDto);
+        }
 
 
-             var responseDto = new ReservationResponseDto
-             {
-                 Id = resa.Id,
-                 MembreId = resa.MembreId,
-                 SessionId = resa.SessionCoursId,
-                 NomCours = session.Cours!.Nom,
-                 HeureDebut = session.HeureDebut.ToString(@"hh\:mm"),
-                 HeureFin = session.HeureFin.ToString(@"hh\:mm"),
-
-                 Statut = resa.Statut.ToString(), 
-                 PlacesRestantes = session.PlacesDisponibles
-             };
-
-             return (true, "Demande de réservation envoyée. En attente de validation par l'admin.", responseDto);
-         }
-        
-      
 
         // --- ANNULER (MEMBRE) ---
         public async Task<(bool Success, string Message)> Annuler(int id, int membreId)
@@ -178,15 +230,15 @@ namespace backend.Services.ReservationService
 
             // Map anglais → français
             var jourMap = new Dictionary<string, string>
-    {
-        { "Monday",    "Lundi"    },
-        { "Tuesday",   "Mardi"    },
-        { "Wednesday", "Mercredi" },
-        { "Thursday",  "Jeudi"    },
-        { "Friday",    "Vendredi" },
-        { "Saturday",  "Samedi"   },
-        { "Sunday",    "Dimanche" }
-    };
+                {
+                    { "Monday",    "Lundi"    },
+                    { "Tuesday",   "Mardi"    },
+                    { "Wednesday", "Mercredi" },
+                    { "Thursday",  "Jeudi"    },
+                    { "Friday",    "Vendredi" },
+                    { "Saturday",  "Samedi"   },
+                    { "Sunday",    "Dimanche" }
+                };
 
             var jourFr = jourMap[jourActuel];
 
