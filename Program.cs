@@ -12,7 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using backend.Hubs; // 1. Assure-toi d'ajouter ce namespace pour ton Hub
+using backend.Hubs;
+using backend.Services.SalleInformation; // 1. Assure-toi d'ajouter ce namespace pour ton Hub
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +50,7 @@ builder.Services.AddScoped<CoursService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ReservationService>();
 builder.Services.AddScoped<EmploiDuTempsService>();
+builder.Services.AddScoped<SalleInformationService>();
 
 // ================= JWT =================
 var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -93,7 +95,36 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // ================= SWAGGER + JWT =================
-builder.Services.AddSwaggerGen(options => { /* ... ton code ... */ });
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "API PFA", Version = "v1" });
+
+    // Configuration JWT
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Entrez 'Bearer {token}'"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[]{ }
+        }
+    });
+});
 
 var app = builder.Build();
 
