@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260325231218_AddSessionIdToNotification")]
-    partial class AddSessionIdToNotification
+    [Migration("20260515171911_j")]
+    partial class j
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -80,14 +80,21 @@ namespace backend.Migrations
                     b.Property<int>("CapaciteMax")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("DateCreation")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
                     b.Property<int>("Genre")
                         .HasColumnType("int");
+
+                    b.Property<TimeSpan>("HeureDebut")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeSpan>("HeureFin")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("JourSemaine")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Nom")
                         .IsRequired()
@@ -110,6 +117,9 @@ namespace backend.Migrations
                     b.Property<int>("CoachId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreeLe")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<TimeSpan>("HeureDebut")
                         .HasColumnType("time(6)");
 
@@ -119,17 +129,12 @@ namespace backend.Migrations
                     b.Property<int>("Jour")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Recurrent")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<int>("SessionId")
-                        .HasColumnType("int");
+                    b.Property<string>("Note")
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CoachId");
-
-                    b.HasIndex("SessionId");
 
                     b.ToTable("EmploisDuTemps");
                 });
@@ -203,6 +208,51 @@ namespace backend.Migrations
                     b.ToTable("Reservations");
                 });
 
+            modelBuilder.Entity("backend.Models.SalleInformation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Adresse")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("LienFacebook")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("LienInstagram")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("NomSalle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Telephone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SalleInformations");
+                });
+
             modelBuilder.Entity("backend.Models.Session_Cours", b =>
                 {
                     b.Property<int>("Id")
@@ -217,8 +267,15 @@ namespace backend.Migrations
                     b.Property<int>("CoursId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("DateHeure")
-                        .HasColumnType("datetime(6)");
+                    b.Property<TimeSpan>("HeureDebut")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeSpan>("HeureFin")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("JourSemaine")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("PlacesDisponibles")
                         .HasColumnType("int");
@@ -339,15 +396,7 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("backend.Models.Session_Cours", "Session")
-                        .WithMany()
-                        .HasForeignKey("SessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Coach");
-
-                    b.Navigation("Session");
                 });
 
             modelBuilder.Entity("backend.Models.Reservation", b =>
@@ -367,6 +416,47 @@ namespace backend.Migrations
                     b.Navigation("Membre");
 
                     b.Navigation("SessionCours");
+                });
+
+            modelBuilder.Entity("backend.Models.SalleInformation", b =>
+                {
+                    b.OwnsMany("backend.Models.HoraireJour", "Horaires", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<bool>("EstOuvert")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<string>("HeureFermeture")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("HeureOuverture")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("Jour")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<int>("SalleInformationId")
+                                .HasColumnType("int");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("SalleInformationId");
+
+                            b1.ToTable("HoraireJour");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SalleInformationId");
+                        });
+
+                    b.Navigation("Horaires");
                 });
 
             modelBuilder.Entity("backend.Models.Session_Cours", b =>

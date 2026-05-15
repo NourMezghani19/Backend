@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class PFA_DB : Migration
+    public partial class j : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -80,11 +80,39 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     UtilisateurId = table.Column<int>(type: "int", nullable: false),
                     DateEnvoi = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Lue = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                    Lue = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    SessionId = table.Column<int>(type: "int", nullable: true),
+                    ReservationId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Notifications", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "SalleInformations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    NomSalle = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Adresse = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Telephone = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LienFacebook = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LienInstagram = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Actif = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SalleInformations", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -184,6 +212,33 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "HoraireJour",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Jour = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    HeureOuverture = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    HeureFermeture = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EstOuvert = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    SalleInformationId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HoraireJour", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_HoraireJour_SalleInformations_SalleInformationId",
+                        column: x => x.SalleInformationId,
+                        principalTable: "SalleInformations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Reservations",
                 columns: table => new
                 {
@@ -216,6 +271,11 @@ namespace backend.Migrations
                 name: "IX_EmploisDuTemps_CoachId",
                 table: "EmploisDuTemps",
                 column: "CoachId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HoraireJour_SalleInformationId",
+                table: "HoraireJour",
+                column: "SalleInformationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reservations_MembreId",
@@ -258,10 +318,16 @@ namespace backend.Migrations
                 name: "EmploisDuTemps");
 
             migrationBuilder.DropTable(
+                name: "HoraireJour");
+
+            migrationBuilder.DropTable(
                 name: "Notifications");
 
             migrationBuilder.DropTable(
                 name: "Reservations");
+
+            migrationBuilder.DropTable(
+                name: "SalleInformations");
 
             migrationBuilder.DropTable(
                 name: "Sessions");

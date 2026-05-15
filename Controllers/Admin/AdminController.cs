@@ -49,7 +49,7 @@ namespace backend.Controllers.Admin
                     $"/api/Administrateur/membres/{result.Id}",
                     new
                     {
-                        message = $"Compte '{result.Prenom} {result.Nom}' créé. Email envoyé ✓",
+                        message = $"Compte '{result.Prenom} {result.Nom}' créé. Email envoyé ",
                         success = true,
                         membre = result
                     });

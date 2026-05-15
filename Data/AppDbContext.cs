@@ -24,6 +24,8 @@ namespace backend.Data
         public DbSet<Notification> Notifications { get; set; }
 
         public DbSet<EmploiDuTemps> EmploisDuTemps { get; set; }
+        public DbSet<SalleInformation> SalleInformations { get; set; }
+        public DbSet<Salle> Salles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,7 +35,7 @@ namespace backend.Data
                 .HasValue<Administrateur>("Administrateur")
                 .HasValue<Membre>("Membre");
 
-         
+
             modelBuilder.Entity<Utilisateur>()
               .HasIndex(u => u.Email)
               .IsUnique()
@@ -42,8 +44,15 @@ namespace backend.Data
             modelBuilder.Entity<Utilisateur>()
               .HasIndex(u => u.Telephone)
               .IsUnique()
-              .HasFilter("[Telephone] IS NOT NULL")  
-              .HasDatabaseName("IX_Utilisateurs_Telephone"); ;
+              .HasFilter("[Telephone] IS NOT NULL")
+              .HasDatabaseName("IX_Utilisateurs_Telephone");
+            modelBuilder.Entity<SalleInformation>()
+                .OwnsMany(s => s.Horaires, h =>
+                {
+                    h.WithOwner().HasForeignKey("SalleInformationId");
+                    h.Property<int>("Id"); // clé technique obligatoire
+                    h.HasKey("Id");
+                });
         }
     }
 }

@@ -6,9 +6,11 @@ namespace backend.DTOs.Cours;
 public record PlanifierSessionDto(
     [Required] int CoursId,
     [Required] int CoachId,
+    [Required] int? SalleId, // 🟢 AJOUTE CETTE LIGNE ICI
     [Required] string JourSemaine, // Ex: "Lundi"
     [Required] string HeureDebut, // Reçu du <input type="time">
-    [Required] string HeureFin );   // Reçu du <input type="time">
+    [Required] string HeureFin ); 
+// Reçu du <input type="time">
 
 //////////////////////////////////////////////////////////////////////// Modifier l'Horaire d'une Dto
 public record ModifierHoraireDto(
@@ -34,5 +36,9 @@ public record SessionResponseDto(
     string HeureDebut, // Remplace "Heure"
     string HeureFin ,   // Ajouté
     int PlacesDisponibles,
-    string Statut
+    string Statut,
+    // 🟢 AJOUTE CES 3 PARAMÈTRES POUR CORRESPONDRE AU MAPPING :
+    int? SalleId,
+    string SalleNom,
+    int? SalleCapacite
 );

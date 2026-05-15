@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260326111710_PFA_DB")]
-    partial class PFA_DB
+    [Migration("20260515185539_AddSalle")]
+    partial class AddSalle
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -157,6 +157,12 @@ namespace backend.Migrations
                     b.Property<bool>("Lue")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<int?>("ReservationId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SessionId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Titre")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -202,6 +208,77 @@ namespace backend.Migrations
                     b.ToTable("Reservations");
                 });
 
+            modelBuilder.Entity("backend.Models.Salle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Capacite")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("Disponible")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Salles");
+                });
+
+            modelBuilder.Entity("backend.Models.SalleInformation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Adresse")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("LienFacebook")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("LienInstagram")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("NomSalle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Telephone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SalleInformations");
+                });
+
             modelBuilder.Entity("backend.Models.Session_Cours", b =>
                 {
                     b.Property<int>("Id")
@@ -229,6 +306,9 @@ namespace backend.Migrations
                     b.Property<int>("PlacesDisponibles")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SalleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Statut")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -238,6 +318,8 @@ namespace backend.Migrations
                     b.HasIndex("CoachId");
 
                     b.HasIndex("CoursId");
+
+                    b.HasIndex("SalleId");
 
                     b.ToTable("Sessions");
                 });
@@ -367,6 +449,47 @@ namespace backend.Migrations
                     b.Navigation("SessionCours");
                 });
 
+            modelBuilder.Entity("backend.Models.SalleInformation", b =>
+                {
+                    b.OwnsMany("backend.Models.HoraireJour", "Horaires", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<bool>("EstOuvert")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<string>("HeureFermeture")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("HeureOuverture")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("Jour")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<int>("SalleInformationId")
+                                .HasColumnType("int");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("SalleInformationId");
+
+                            b1.ToTable("HoraireJour");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SalleInformationId");
+                        });
+
+                    b.Navigation("Horaires");
+                });
+
             modelBuilder.Entity("backend.Models.Session_Cours", b =>
                 {
                     b.HasOne("backend.Models.Coach", "Coach")
@@ -381,9 +504,20 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.Salle", "Salle")
+                        .WithMany("Sessions")
+                        .HasForeignKey("SalleId");
+
                     b.Navigation("Coach");
 
                     b.Navigation("Cours");
+
+                    b.Navigation("Salle");
+                });
+
+            modelBuilder.Entity("backend.Models.Salle", b =>
+                {
+                    b.Navigation("Sessions");
                 });
 #pragma warning restore 612, 618
         }

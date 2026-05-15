@@ -14,7 +14,8 @@ public class Session_Cours
 
     [Required]
     public string JourSemaine { get; set; } = "Lundi"; // Lundi, Mardi, Mercredi...
-
+    public int? SalleId { get; set; }
+    public Salle? Salle { get; set; }
     [Required]
     public TimeSpan HeureDebut { get; set; } // Utilise TimeSpan pour les calculs
     public TimeSpan HeureFin { get; set; }
