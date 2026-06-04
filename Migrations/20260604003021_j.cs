@@ -117,6 +117,25 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Salles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Nom = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Capacite = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Disponible = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Salles", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Utilisateurs",
                 columns: table => new
                 {
@@ -178,40 +197,6 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Sessions",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    CoursId = table.Column<int>(type: "int", nullable: false),
-                    CoachId = table.Column<int>(type: "int", nullable: false),
-                    JourSemaine = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    HeureDebut = table.Column<TimeSpan>(type: "time(6)", nullable: false),
-                    HeureFin = table.Column<TimeSpan>(type: "time(6)", nullable: false),
-                    PlacesDisponibles = table.Column<int>(type: "int", nullable: false),
-                    Statut = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Sessions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Sessions_Coachs_CoachId",
-                        column: x => x.CoachId,
-                        principalTable: "Coachs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Sessions_Cours_CoursId",
-                        column: x => x.CoursId,
-                        principalTable: "Cours",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "HoraireJour",
                 columns: table => new
                 {
@@ -235,6 +220,46 @@ namespace backend.Migrations
                         principalTable: "SalleInformations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Sessions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CoursId = table.Column<int>(type: "int", nullable: false),
+                    CoachId = table.Column<int>(type: "int", nullable: false),
+                    JourSemaine = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SalleId = table.Column<int>(type: "int", nullable: true),
+                    HeureDebut = table.Column<TimeSpan>(type: "time(6)", nullable: false),
+                    HeureFin = table.Column<TimeSpan>(type: "time(6)", nullable: false),
+                    PlacesDisponibles = table.Column<int>(type: "int", nullable: false),
+                    Statut = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Sessions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Sessions_Coachs_CoachId",
+                        column: x => x.CoachId,
+                        principalTable: "Coachs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Sessions_Cours_CoursId",
+                        column: x => x.CoursId,
+                        principalTable: "Cours",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Sessions_Salles_SalleId",
+                        column: x => x.SalleId,
+                        principalTable: "Salles",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -298,6 +323,11 @@ namespace backend.Migrations
                 column: "CoursId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Sessions_SalleId",
+                table: "Sessions",
+                column: "SalleId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Utilisateurs_Email",
                 table: "Utilisateurs",
                 column: "Email",
@@ -340,6 +370,9 @@ namespace backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "Cours");
+
+            migrationBuilder.DropTable(
+                name: "Salles");
         }
     }
 }
