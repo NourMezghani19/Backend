@@ -24,10 +24,18 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        
+                policy.WithOrigins(
+                  "http://localhost:4200",
+                  "http://192.168.1.29:4200",
+                  "https://localhost",
+                  "capacitor://localhost",
+                  "http://localhost"
+              )
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials(); // Obligatoire pour SignalR
+
     });
 });
 
