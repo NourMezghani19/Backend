@@ -22,4 +22,6 @@ namespace backend.DTOs.SalleInformation
 
         public bool? Actif { get; set; }
     }
+
 }
+

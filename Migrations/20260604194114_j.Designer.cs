@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260514200440_j")]
+    [Migration("20260604194114_j")]
     partial class j
     {
         /// <inheritdoc />
@@ -208,6 +208,32 @@ namespace backend.Migrations
                     b.ToTable("Reservations");
                 });
 
+            modelBuilder.Entity("backend.Models.Salle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Capacite")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("Disponible")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Salles");
+                });
+
             modelBuilder.Entity("backend.Models.SalleInformation", b =>
                 {
                     b.Property<int>("Id")
@@ -280,6 +306,9 @@ namespace backend.Migrations
                     b.Property<int>("PlacesDisponibles")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SalleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Statut")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -289,6 +318,8 @@ namespace backend.Migrations
                     b.HasIndex("CoachId");
 
                     b.HasIndex("CoursId");
+
+                    b.HasIndex("SalleId");
 
                     b.ToTable("Sessions");
                 });
@@ -473,9 +504,20 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.Salle", "Salle")
+                        .WithMany("Sessions")
+                        .HasForeignKey("SalleId");
+
                     b.Navigation("Coach");
 
                     b.Navigation("Cours");
+
+                    b.Navigation("Salle");
+                });
+
+            modelBuilder.Entity("backend.Models.Salle", b =>
+                {
+                    b.Navigation("Sessions");
                 });
 #pragma warning restore 612, 618
         }

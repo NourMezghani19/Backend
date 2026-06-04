@@ -6,4 +6,6 @@
         public string? HeureFermeture { get; set; }
         public bool? EstOuvert { get; set; }
     }
+
 }
+

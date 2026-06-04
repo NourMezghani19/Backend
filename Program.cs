@@ -24,6 +24,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
+
         
                 policy.WithOrigins(
                   "http://localhost:4200",
@@ -36,6 +37,8 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowCredentials(); // Obligatoire pour SignalR
 
+
+    
     });
 });
 
@@ -59,6 +62,9 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ReservationService>();
 builder.Services.AddScoped<EmploiDuTempsService>();
 builder.Services.AddScoped<SalleInformationService>();
+
+builder.Services.AddScoped<SalleService>();
+
 
 builder.Services.AddHttpClient("FastAPI", client =>
 {
@@ -190,7 +196,7 @@ using (var scope = app.Services.CreateScope())
         });
         db.SaveChanges();
         Console.WriteLine("Membre de test créé : membre@pfa.com / Membre123!");
-   
+
     }
 
     // === DOSSIER UPLOADS ===

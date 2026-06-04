@@ -12,4 +12,7 @@
         public bool Actif { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
+
 }
+
+

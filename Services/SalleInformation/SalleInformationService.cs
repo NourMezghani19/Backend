@@ -270,4 +270,6 @@ namespace backend.Services.SalleInformation
             };
         }
     }
+
 }
+

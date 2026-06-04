@@ -7,4 +7,6 @@
         public HoraireJourDto? HoraireJour { get; set; }
 
     }
+
 }
+

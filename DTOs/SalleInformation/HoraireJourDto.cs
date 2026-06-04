@@ -7,4 +7,8 @@
         public string HeureFermeture { get; set; } = "22:00";
         public bool EstOuvert { get; set; } = true;
     }
+
 }
+
+
+

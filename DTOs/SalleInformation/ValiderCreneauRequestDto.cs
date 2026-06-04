@@ -13,4 +13,6 @@ namespace backend.DTOs.SalleInformation
         [Required, RegularExpression(@"^\d{2}:\d{2}$", ErrorMessage = "Format HH:mm requis")]
         public string HeureFin { get; set; } = string.Empty;
     }
+
 }
+

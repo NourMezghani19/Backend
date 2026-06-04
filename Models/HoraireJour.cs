@@ -25,4 +25,6 @@ namespace backend.Models
         new() { Jour = "dimanche", HeureOuverture = "08:00", HeureFermeture = "14:00", EstOuvert = false },
     ];
     }
+
 }
+
