@@ -338,9 +338,9 @@ public class CoursService(AppDbContext db)
         s.HeureDebut.ToString(@"hh\:mm"),
         s.HeureFin.ToString(@"hh\:mm"),
         s.PlacesDisponibles,
-        s.Statut,
-        s.SalleId,
-        s.Salle != null ? s.Salle.Nom : "— Non assignée —",
-        s.Salle != null ? s.Salle.Capacite : s.Cours.CapaciteMax
+        s.Statut,          // Paramètre 16
+s.SalleId,         // Paramètre 17
+s.Salle != null ? s.Salle.Nom : "— Non assignée —", // Paramètre 18 👈 C'est lui !
+s.Salle != null ? s.Salle.Capacite : s.Cours.CapaciteMax // Paramètre 19
     );
 }

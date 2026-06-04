@@ -51,8 +51,17 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ReservationService>();
 builder.Services.AddScoped<EmploiDuTempsService>();
 builder.Services.AddScoped<SalleInformationService>();
-builder.Services.AddScoped<SalleService>();
 
+builder.Services.AddHttpClient("FastAPI", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:8000");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddHttpClient("NutritionAPI", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:8081");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 // ================= JWT =================
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 
