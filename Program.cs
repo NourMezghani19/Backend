@@ -24,13 +24,17 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins(
+                "http://localhost",
+                "http://localhost:4200",
+                "http://192.168.100.207",      // in case frontend also runs on this machine
+                "http://192.168.100.207:4200"
+              )
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials(); // Obligatoire pour SignalR
+              .AllowCredentials();
     });
 });
-
 // ================= DATABASE =================
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
@@ -201,6 +205,7 @@ using (var scope = app.Services.CreateScope())
 
 // ================= MIDDLEWARE =================
 app.UseStaticFiles();
+app.UseRouting();        // ← add this if missing
 
 app.UseCors("AllowAngular");
 
