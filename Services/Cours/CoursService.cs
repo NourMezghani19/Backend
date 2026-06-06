@@ -151,6 +151,70 @@ public class CoursService(AppDbContext db)
     ////////////////////////////////////////////////////////////////////////  Planifier sessions
     // SUPER ADMIN — PLANIFIER SESSION
     //////////////////////////////////////////////////////////////////////  Planifier sessions
+    /* public async Task<SessionResponseDto> PlanifierSession(PlanifierSessionDto dto)
+     {
+         var cours = await db.Cours.FindAsync(dto.CoursId)
+             ?? throw new KeyNotFoundException("Cours introuvable");
+
+         var coach = await db.Coachs.FindAsync(dto.CoachId)
+             ?? throw new KeyNotFoundException("Coach introuvable");
+
+         // 🟢 Sécurité supplémentaire : Vérifier si la salle demandée existe vraiment en BDD
+         if (dto.SalleId.HasValue && dto.SalleId.Value > 0)
+         {
+             var salleExiste = await db.Salles.AnyAsync(s => s.Id == dto.SalleId.Value);
+             if (!salleExiste)
+             {
+                 throw new KeyNotFoundException($"La salle avec l'ID {dto.SalleId.Value} n'existe pas en base de données.");
+             }
+         }
+
+         // 🟢 NETTOYAGE ET PARSING SÉCURISÉ DES HORAIRES (Supprime AM/PM si présent)
+         var heureDebutNettoyee = dto.HeureDebut.Replace("AM", "").Replace("PM", "").Trim();
+         var heureFinNettoyee = dto.HeureFin.Replace("AM", "").Replace("PM", "").Trim();
+
+         var debut = TimeSpan.Parse(heureDebutNettoyee);
+         var fin = TimeSpan.Parse(heureFinNettoyee);
+         string jourCible = dto.JourSemaine.Trim().ToLower();
+
+         // 🟢 INTERCEPTION DES CONFLITS (Ignore les espaces et la casse)
+         bool dejaPris = await db.Sessions.AnyAsync(s =>
+         s.CoachId == dto.CoachId &&
+         s.Statut == "Planifie" &&
+         !string.IsNullOrEmpty(s.JourSemaine) &&
+         s.HeureDebut != default &&
+         s.HeureFin != default &&
+         s.JourSemaine.ToLower() == jourCible &&
+         debut < s.HeureFin &&
+         fin > s.HeureDebut
+     );
+
+         if (dejaPris)
+             throw new InvalidOperationException("Le coach a déjà un cours sur ce créneau horaire.");
+
+         var session = new Session_Cours
+         {
+             CoursId = dto.CoursId,
+             CoachId = dto.CoachId,
+             // 🟢 Nettoyage strict pour éviter l'erreur FK MySQL
+             SalleId = (dto.SalleId.HasValue && dto.SalleId.Value > 0) ? dto.SalleId.Value : null,
+             JourSemaine = dto.JourSemaine,
+             HeureDebut = debut,
+             HeureFin = fin,
+             PlacesDisponibles = cours.CapaciteMax,
+             Statut = "Planifie"
+         };
+
+         db.Sessions.Add(session);
+         await db.SaveChangesAsync();
+
+         // 🟢 Chargement explicite de toutes les relations pour alimenter correctement le MapSessionToDto
+         await db.Entry(session).Reference(s => s.Cours).LoadAsync();
+         await db.Entry(session).Reference(s => s.Coach).LoadAsync();
+         await db.Entry(session).Reference(s => s.Salle).LoadAsync();
+
+         return MapSessionToDto(session);
+     }*/
     public async Task<SessionResponseDto> PlanifierSession(PlanifierSessionDto dto)
     {
         var cours = await db.Cours.FindAsync(dto.CoursId)
@@ -159,32 +223,42 @@ public class CoursService(AppDbContext db)
         var coach = await db.Coachs.FindAsync(dto.CoachId)
             ?? throw new KeyNotFoundException("Coach introuvable");
 
-        // 🟢 Sécurité supplémentaire : Vérifier si la salle demandée existe vraiment en BDD
+        // ✅ Vérification de la disponibilité du coach
+        if (!coach.Disponible)
+            throw new InvalidOperationException("Ce coach est indisponible.");
+
+        // ✅ Vérification que le cours est actif
+        if (!cours.Actif)
+            throw new InvalidOperationException("Ce cours est inactif.");
+
+        // Vérification de la salle si fournie
         if (dto.SalleId.HasValue && dto.SalleId.Value > 0)
         {
             var salleExiste = await db.Salles.AnyAsync(s => s.Id == dto.SalleId.Value);
             if (!salleExiste)
-            {
                 throw new KeyNotFoundException($"La salle avec l'ID {dto.SalleId.Value} n'existe pas en base de données.");
-            }
         }
 
-        // 🟢 NETTOYAGE ET PARSING SÉCURISÉ DES HORAIRES (Supprime AM/PM si présent)
+        // Nettoyage et parsing des horaires
         var heureDebutNettoyee = dto.HeureDebut.Replace("AM", "").Replace("PM", "").Trim();
         var heureFinNettoyee = dto.HeureFin.Replace("AM", "").Replace("PM", "").Trim();
 
         var debut = TimeSpan.Parse(heureDebutNettoyee);
         var fin = TimeSpan.Parse(heureFinNettoyee);
-        string jourCible = dto.JourSemaine.Trim().ToLower();
+        string jour = dto.JourSemaine.Trim();
 
-        // 🟢 INTERCEPTION DES CONFLITS (Ignore les espaces et la casse)
+        // ✅ Vérification cohérence horaire
+        if (fin <= debut)
+            throw new InvalidOperationException("L'heure de fin doit être après l'heure de début.");
+
+        // ✅ Vérification conflit horaire du coach — comparaison directe sans ToLower()
         bool dejaPris = await db.Sessions.AnyAsync(s =>
             s.CoachId == dto.CoachId &&
             s.Statut == "Planifie" &&
-            s.JourSemaine.Trim().ToLower() == jourCible &&
-            ((debut >= s.HeureDebut && debut < s.HeureFin) ||
-             (fin > s.HeureDebut && fin <= s.HeureFin) ||
-             (debut <= s.HeureDebut && fin >= s.HeureFin)));
+            s.JourSemaine == jour &&
+            debut < s.HeureFin &&
+            fin > s.HeureDebut
+        );
 
         if (dejaPris)
             throw new InvalidOperationException("Le coach a déjà un cours sur ce créneau horaire.");
@@ -193,9 +267,8 @@ public class CoursService(AppDbContext db)
         {
             CoursId = dto.CoursId,
             CoachId = dto.CoachId,
-            // 🟢 Nettoyage strict pour éviter l'erreur FK MySQL
             SalleId = (dto.SalleId.HasValue && dto.SalleId.Value > 0) ? dto.SalleId.Value : null,
-            JourSemaine = dto.JourSemaine,
+            JourSemaine = jour,
             HeureDebut = debut,
             HeureFin = fin,
             PlacesDisponibles = cours.CapaciteMax,
@@ -205,7 +278,6 @@ public class CoursService(AppDbContext db)
         db.Sessions.Add(session);
         await db.SaveChangesAsync();
 
-        // 🟢 Chargement explicite de toutes les relations pour alimenter correctement le MapSessionToDto
         await db.Entry(session).Reference(s => s.Cours).LoadAsync();
         await db.Entry(session).Reference(s => s.Coach).LoadAsync();
         await db.Entry(session).Reference(s => s.Salle).LoadAsync();

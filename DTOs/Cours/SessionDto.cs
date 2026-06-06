@@ -6,7 +6,7 @@ namespace backend.DTOs.Cours;
 public record PlanifierSessionDto(
     [Required] int CoursId,
     [Required] int CoachId,
-    [Required] int? SalleId, // 🟢 AJOUTE CETTE LIGNE ICI
+     int? SalleId, // 🟢 AJOUTE CETTE LIGNE ICI
     [Required] string JourSemaine, // Ex: "Lundi"
     [Required] string HeureDebut, // Reçu du <input type="time">
     [Required] string HeureFin ); 
