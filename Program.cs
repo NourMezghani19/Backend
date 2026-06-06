@@ -5,6 +5,7 @@ using backend.Models;
 using backend.Services;
 using backend.Services.Admin;
 using backend.Services.Coach;
+using backend.Services.Contact;
 using backend.Services.EmploiDuTemps;
 using backend.Services.MembreServices;
 using backend.Services.PlanAbonnement;
@@ -61,8 +62,9 @@ builder.Services.AddScoped<ReservationService>();
 builder.Services.AddScoped<EmploiDuTempsService>();
 builder.Services.AddScoped<SalleInformationService>();
 builder.Services.AddScoped<PlanAbonnementService>();
-
 builder.Services.AddScoped<SalleService>();
+builder.Services.AddScoped<ContactService>();
+
 
 
 builder.Services.AddHttpClient("FastAPI", client =>
