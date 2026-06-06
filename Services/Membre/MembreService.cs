@@ -2,6 +2,7 @@
 using backend.DTOs;
 using backend.DTOs.Membre;
 using backend.Models;
+using backend.Services.Historique;
 
 namespace backend.Services.MembreServices
 {
@@ -12,7 +13,7 @@ namespace backend.Services.MembreServices
 
         private static readonly string[] allowedExts =
             { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
-        private const long MaxFileSize = 5 * 1024 * 1024; 
+        private const long MaxFileSize = 5 * 1024 * 1024;
 
         public MembreService(AppDbContext db, IWebHostEnvironment env)
         {
@@ -20,14 +21,13 @@ namespace backend.Services.MembreServices
             this.env = env;
         }
 
-
         public async Task<MembreProfilDto?> GetProfil(int id)
         {
             var m = await this.db.Membres.FindAsync(id);
             return m == null ? null : MapToDto(m);
         }
 
-        public async Task<MembreProfilDto?> ModifierProfil(int id, UpdateMembreDto dto)
+        public async Task<MembreProfilDto?> ModifierProfil(int id, UpdateMembreDto dto, HistoriqueService historiqueService)
         {
             var m = await this.db.Membres.FindAsync(id);
             if (m == null) return null;
@@ -37,6 +37,8 @@ namespace backend.Services.MembreServices
             m.Telephone = dto.Telephone?.Trim();
             m.Taille = dto.Taille;
             m.Poids = dto.Poids;
+            m.ObjectifPoids = dto.ObjectifPoids;        // ✅ ajouté
+            m.DateNaissance = dto.DateNaissance;        // ✅ ajouté
 
             await this.db.SaveChangesAsync();
             return MapToDto(m);
@@ -47,9 +49,11 @@ namespace backend.Services.MembreServices
             var m = await db.Membres.FindAsync(id);
             if (m == null) return (false, "Membre non trouvé");
 
-            bool isOldPasswordValid = BCrypt.Net.BCrypt.Verify(dto.AncienMotDePasse, m.MotDePasse);
-            if (!isOldPasswordValid)
+            if (!BCrypt.Net.BCrypt.Verify(dto.AncienMotDePasse, m.MotDePasse))
                 return (false, "L'ancien mot de passe est incorrect");
+
+            if (dto.NouveauMotDePasse != dto.ConfirmationMotDePasse)
+                return (false, "Les mots de passe ne correspondent pas");
 
             m.MotDePasse = BCrypt.Net.BCrypt.HashPassword(dto.NouveauMotDePasse);
             await db.SaveChangesAsync();
@@ -57,7 +61,7 @@ namespace backend.Services.MembreServices
             return (true, "Mot de passe modifié avec succès");
         }
 
-        public async Task<(bool success, string message, string? url)>UploadPhotoProfile(int id, IFormFile photo)
+        public async Task<(bool success, string message, string? url)> UploadPhotoProfile(int id, IFormFile photo)
         {
             var m = await db.Membres.FindAsync(id);
             if (m == null) return (false, $"Membre #{id} non trouvé", null);
@@ -74,15 +78,9 @@ namespace backend.Services.MembreServices
                 try
                 {
                     var oldPath = Path.Combine(env.WebRootPath, m.PhotoProfile.TrimStart('/'));
-                    if (File.Exists(oldPath))
-                    {
-                        File.Delete(oldPath);
-                    }
+                    if (File.Exists(oldPath)) File.Delete(oldPath);
                 }
-                catch (IOException)
-                {
-                   
-                }
+                catch (IOException) { }
             }
 
             var uploadsDir = Path.Combine(env.WebRootPath, "uploads");
@@ -103,6 +101,7 @@ namespace backend.Services.MembreServices
             return (true, "Photo uploadée avec succès ✓", m.PhotoProfile);
         }
 
+        // ─── Helpers ──────────────────────────────────────────────────
         private static string CategoriserIMC(float imc) => imc switch
         {
             < 18.5f => "Insuffisance pondérale",
@@ -124,12 +123,15 @@ namespace backend.Services.MembreServices
                 Prenom = m.Prenom,
                 Email = m.Email,
                 Telephone = m.Telephone,
+                Genre = m.genre,
                 Taille = m.Taille,
                 Poids = m.Poids,
+                ObjectifPoids = m.ObjectifPoids,
                 PhotoProfile = m.PhotoProfile,
-                DateInscription = m.DateInscription,
+                DateInscription = m.DateInscription.ToString("dd/MM/yyyy"),  // ✅ fix
+                DateNaissance = m.DateNaissance?.ToString("dd/MM/yyyy"),   // ✅ fix
                 IMC = MathF.Round(imc, 2),
-                CategorieIMC = CategoriserIMC(imc)
+                CategorieIMC = CategoriserIMC(imc),
             };
         }
     }

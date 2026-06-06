@@ -26,6 +26,7 @@ namespace backend.Data
         public DbSet<EmploiDuTemps> EmploisDuTemps { get; set; }
         public DbSet<SalleInformation> SalleInformations { get; set; }
         public DbSet<Salle> Salles { get; set; }
+        public DbSet<HistoriqueEntry> Historiques { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

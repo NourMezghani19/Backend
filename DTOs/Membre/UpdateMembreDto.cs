@@ -21,6 +21,10 @@ namespace backend.DTOs
 
         [Range(20, 300, ErrorMessage = "Poids entre 20 et 300 kg")]
         public float Poids { get; set; }
+
+        public float ObjectifPoids { get; set; }
+
+        public DateTime? DateNaissance { get; set; }
     }
 
 }

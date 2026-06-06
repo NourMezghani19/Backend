@@ -6,11 +6,20 @@ namespace backend.Models
     {
         [Required]
         [MaxLength(20)]
-        public string IdSalleSport { get; set; } = string.Empty;  
+        public string IdSalleSport { get; set; } = string.Empty;
+
         public float Taille { get; set; }
+
         public float Poids { get; set; }
+
+        public float ObjectifPoids { get; set; }        // ✅ nouveau
+
+        public DateTime? DateNaissance { get; set; }    // ✅ nouveau
+
         public string? PhotoProfile { get; set; }
+
         public DateTime DateInscription { get; set; } = DateTime.UtcNow;
+
         public override void SeConnecter() { }
         public override void SeDeconnecter() { }
         public override void ModifierProfil() { }

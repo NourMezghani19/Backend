@@ -2,6 +2,7 @@
 using backend.DTOs;
 using backend.DTOs.Membre;
 using backend.Services;
+using backend.Services.Historique;
 using backend.Services.MembreServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,12 +20,17 @@ namespace backend.Controllers.Membre
     {
         private readonly MembreService svc;
         private readonly AuthService authSvc;
-        public MembreController(MembreService svc, AuthService authSvc)
+        private readonly HistoriqueService historiqueService;
+        public MembreController(
+    MembreService svc,
+    AuthService authSvc,
+    HistoriqueService historiqueService)
         {
             this.svc = svc;
             this.authSvc = authSvc;
+            this.historiqueService = historiqueService;
         }
-        
+
         [HttpPut("modifier-mot-de-passe")]
         public async Task<IActionResult> ModifierMotDePasse([FromBody] ChangePasswordDto dto)
         {
@@ -66,7 +72,7 @@ namespace backend.Controllers.Membre
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await this.svc.ModifierProfil(id, dto);
+            var result = await this.svc.ModifierProfil(id, dto, historiqueService);
 
             if (result == null)
                 return NotFound(new { message = $"Membre #{id} non trouvé" });
