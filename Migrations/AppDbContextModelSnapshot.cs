@@ -136,6 +136,53 @@ namespace backend.Migrations
                     b.ToTable("EmploisDuTemps");
                 });
 
+            modelBuilder.Entity("backend.Models.Exercice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("MembreId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("Repetitions")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Series")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("MembreId");
+
+                    b.ToTable("Exercices");
+                });
+
             modelBuilder.Entity("backend.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -174,6 +221,69 @@ namespace backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("backend.Models.Programme", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("MembreId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("MembreId");
+
+                    b.ToTable("Programmes");
+                });
+
+            modelBuilder.Entity("backend.Models.ProgrammeExercice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ExerciceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProgrammeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExerciceId");
+
+                    b.HasIndex("ProgrammeId");
+
+                    b.ToTable("ProgrammeExercices");
                 });
 
             modelBuilder.Entity("backend.Models.Reservation", b =>
@@ -427,6 +537,47 @@ namespace backend.Migrations
                     b.Navigation("Coach");
                 });
 
+            modelBuilder.Entity("backend.Models.Exercice", b =>
+                {
+                    b.HasOne("backend.Models.Utilisateur", "Membre")
+                        .WithMany()
+                        .HasForeignKey("MembreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Membre");
+                });
+
+            modelBuilder.Entity("backend.Models.Programme", b =>
+                {
+                    b.HasOne("backend.Models.Utilisateur", "Membre")
+                        .WithMany()
+                        .HasForeignKey("MembreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Membre");
+                });
+
+            modelBuilder.Entity("backend.Models.ProgrammeExercice", b =>
+                {
+                    b.HasOne("backend.Models.Exercice", "Exercice")
+                        .WithMany()
+                        .HasForeignKey("ExerciceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.Programme", "Programme")
+                        .WithMany("ProgrammeExercices")
+                        .HasForeignKey("ProgrammeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exercice");
+
+                    b.Navigation("Programme");
+                });
+
             modelBuilder.Entity("backend.Models.Reservation", b =>
                 {
                     b.HasOne("backend.Models.Membre", "Membre")
@@ -510,6 +661,11 @@ namespace backend.Migrations
                     b.Navigation("Cours");
 
                     b.Navigation("Salle");
+                });
+
+            modelBuilder.Entity("backend.Models.Programme", b =>
+                {
+                    b.Navigation("ProgrammeExercices");
                 });
 
             modelBuilder.Entity("backend.Models.Salle", b =>

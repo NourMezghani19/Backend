@@ -15,6 +15,7 @@
 
         public float IMC { get; set; }  
         public string CategorieIMC { get; set; } = string.Empty;
-       
+        public string MotDePasse { get; set; }
+
     }
 }

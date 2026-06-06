@@ -43,6 +43,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("logout")]
+        [AllowAnonymous]
         [Authorize]
         public IActionResult Logout()
         {

@@ -1,19 +1,20 @@
 ﻿using backend.Data;
+using backend.Hubs;
 using backend.Models;
 using backend.Services;
 using backend.Services.Admin;
 using backend.Services.Coach;
+using backend.Services.EmploiDuTemps;
 using backend.Services.MembreServices;
 using backend.Services.ReservationService;
+using backend.Services.SalleInformation; // 1. Assure-toi d'ajouter ce namespace pour ton Hub
 using backend.Services.SuperAdminstrateur;
-using backend.Services.EmploiDuTemps;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using backend.Hubs;
-using backend.Services.SalleInformation; // 1. Assure-toi d'ajouter ce namespace pour ton Hub
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,8 +28,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "http://localhost",
                 "http://localhost:4200",
-                "http://192.168.100.207",      // in case frontend also runs on this machine
-                "http://192.168.100.207:4200"
+                "http://192.168.43.69",      // in case frontend also runs on this machine
+                "http://192.168.43.69:4200"
               )
               .AllowAnyMethod()
               .AllowAnyHeader()
@@ -55,6 +56,10 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ReservationService>();
 builder.Services.AddScoped<EmploiDuTempsService>();
 builder.Services.AddScoped<SalleInformationService>();
+builder.Services.AddScoped<ExerciceService>();
+builder.Services.AddScoped<ProgrammeService>();
+
+
 
 builder.Services.AddHttpClient("FastAPI", client =>
 {
@@ -63,8 +68,9 @@ builder.Services.AddHttpClient("FastAPI", client =>
 });
 builder.Services.AddHttpClient("NutritionAPI", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:8081");
-    client.Timeout = TimeSpan.FromSeconds(30);
+    // Remplacez par l'IP réelle de la machine Python
+    client.BaseAddress = new Uri("http://192.168.100.207:8081");
+    client.Timeout = TimeSpan.FromSeconds(60); // augmentez le timeout pour l'IA
 });
 // ================= JWT =================
 var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -105,9 +111,14 @@ builder.Services
 builder.Services.AddAuthorization(opt => { /* ... ton code ... */ });
 
 // ================= CONTROLLERS =================
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 
+    }); builder.Services.AddEndpointsApiExplorer();
+ 
 // ================= SWAGGER + JWT =================
 builder.Services.AddSwaggerGen(options =>
 {

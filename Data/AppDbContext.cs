@@ -26,6 +26,9 @@ namespace backend.Data
         public DbSet<EmploiDuTemps> EmploisDuTemps { get; set; }
         public DbSet<SalleInformation> SalleInformations { get; set; }
         public DbSet<Salle> Salles { get; set; }
+        public DbSet<Exercice> Exercices { get; set; }
+        public DbSet<Programme> Programmes { get; set; }
+        public DbSet<ProgrammeExercice> ProgrammeExercices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,6 +56,46 @@ namespace backend.Data
                     h.Property<int>("Id"); // clé technique obligatoire
                     h.HasKey("Id");
                 });
+            modelBuilder.Entity<Exercice>(e =>
+            {
+                e.HasKey(x => x.Id);
+
+                e.Property(x => x.Nom).IsRequired().HasMaxLength(100);
+                e.Property(x => x.Mode).HasConversion<string>(); // stocke l'enum en string
+
+                e.HasOne(x => x.Membre)
+                 .WithMany()               // ou .WithMany(u => u.Exercices) si navigation inversée
+                 .HasForeignKey(x => x.MembreId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                // Index pour accélérer les requêtes par membre
+                e.HasIndex(x => x.MembreId);
+                e.HasIndex(x => x.ExpiresAt); // pour la purge automatique
+            });
+            modelBuilder.Entity<Programme>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Nom).IsRequired().HasMaxLength(150);
+                e.HasOne(x => x.Membre)
+                 .WithMany()
+                 .HasForeignKey(x => x.MembreId)
+                 .OnDelete(DeleteBehavior.Cascade);
+                e.HasIndex(x => x.MembreId);
+                e.HasIndex(x => x.ExpiresAt);
+            });
+
+            modelBuilder.Entity<ProgrammeExercice>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.HasOne(x => x.Programme)
+                 .WithMany(p => p.ProgrammeExercices)
+                 .HasForeignKey(x => x.ProgrammeId)
+                 .OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Exercice)
+                 .WithMany()
+                 .HasForeignKey(x => x.ExerciceId)
+                 .OnDelete(DeleteBehavior.Restrict); // exercice géré manuellement
+            });
         }
     }
 }
