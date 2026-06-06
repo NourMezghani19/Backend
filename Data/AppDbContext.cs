@@ -27,7 +27,8 @@ namespace backend.Data
         public DbSet<SalleInformation> SalleInformations { get; set; }
         public DbSet<Salle> Salles { get; set; }
         public DbSet<HistoriqueEntry> Historiques { get; set; }
-
+        public DbSet<ConversationSession> ConversationSessions { get; set; }
+        public DbSet<ConversationMessage> ConversationMessages { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Utilisateur>()
@@ -54,6 +55,25 @@ namespace backend.Data
                     h.Property<int>("Id"); // clé technique obligatoire
                     h.HasKey("Id");
                 });
+            modelBuilder.Entity<ConversationSession>(e =>
+             {
+                e.HasKey(s => s.Id);
+                e.HasOne(s => s.Membre)
+                 .WithMany()
+                .HasForeignKey(s => s.MembreId)
+                .OnDelete(DeleteBehavior.Cascade);
+               e.HasMany(s => s.Messages)
+                  .WithOne(m => m.Session)
+                  .HasForeignKey(m => m.SessionId)
+                  .OnDelete(DeleteBehavior.Cascade);
+             });
+
+             modelBuilder.Entity<ConversationMessage>(e =>
+             {
+                 e.HasKey(m => m.Id);
+                 e.Property(m => m.Role).HasMaxLength(20);
+                 e.Property(m => m.Content).HasColumnType("TEXT");
+             });
         }
     }
 }

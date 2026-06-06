@@ -56,7 +56,7 @@ builder.Services.AddScoped<SalleInformationService>();
 builder.Services.AddScoped<SalleService>();
 builder.Services.AddScoped<IAvatarService, AvatarService>();
 builder.Services.AddScoped<HistoriqueService>();
-
+builder.Services.AddScoped<MotivationService>();
 
 builder.Services.AddHttpClient("FastAPI", client =>
 {
