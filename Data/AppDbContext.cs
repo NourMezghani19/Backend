@@ -27,6 +27,8 @@ namespace backend.Data
         public DbSet<SalleInformation> SalleInformations { get; set; }
 
         public DbSet<Salle> Salles { get; set; }
+        public DbSet<PlanAbonnement> PlansAbonnement { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,22 +1,23 @@
-﻿using backend.Data;
+﻿using System.Text;
+using backend.Data;
+using backend.Hubs;
 using backend.Models;
 using backend.Services;
 using backend.Services.Admin;
 using backend.Services.Coach;
-using backend.Services.MembreServices;
-using backend.Services.ReservationService;
-using backend.Services.SuperAdminstrateur;
 using backend.Services.EmploiDuTemps;
+using backend.Services.MembreServices;
+using backend.Services.PlanAbonnement;
+using backend.Services.ReservationService;
+using backend.Services.SalleInformation; // 1. Assure-toi d'ajouter ce namespace pour ton Hub
+using backend.Services.SuperAdminstrateur;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
-using backend.Hubs;
-using backend.Services.SalleInformation; // 1. Assure-toi d'ajouter ce namespace pour ton Hub
 
 var builder = WebApplication.CreateBuilder(args);
-
+//builder.WebHost.UseUrls("http://0.0.0.0:5253");
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // ================= CORS =================
@@ -24,21 +25,18 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-
-        
-                policy.WithOrigins(
-                  "http://localhost:4200",
-                  "http://192.168.1.29:4200",
-                  "https://localhost",
-                  "capacitor://localhost",
-                  "http://localhost"
-              )
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials(); // Obligatoire pour SignalR
-
-
-    
+        policy.WithOrigins(
+                 "http://localhost",
+                 "http://localhost:4200",
+                 "http://192.168.1.105",
+                 "http://192.168.1.105:4200",
+                 "capacitor://localhost",      // ← ADD THIS
+                 "ionic://localhost",           // ← ADD THIS
+                 "http://localhost:80"          // ← ADD THIS
+               )
+       .AllowAnyMethod()
+       .AllowAnyHeader()
+       .AllowCredentials();
     });
 });
 
@@ -62,6 +60,7 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ReservationService>();
 builder.Services.AddScoped<EmploiDuTempsService>();
 builder.Services.AddScoped<SalleInformationService>();
+builder.Services.AddScoped<PlanAbonnementService>();
 
 builder.Services.AddScoped<SalleService>();
 
@@ -69,6 +68,11 @@ builder.Services.AddScoped<SalleService>();
 builder.Services.AddHttpClient("FastAPI", client =>
 {
     client.BaseAddress = new Uri("http://localhost:8000");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddHttpClient("NutritionAPI", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:8081");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 // ================= JWT =================
@@ -210,7 +214,7 @@ using (var scope = app.Services.CreateScope())
 
 // ================= MIDDLEWARE =================
 app.UseStaticFiles();
-
+app.UseRouting();
 app.UseCors("AllowAngular");
 
 app.UseAuthentication();
