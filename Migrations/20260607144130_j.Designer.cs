@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260607002657_j")]
+    [Migration("20260607144130_j")]
     partial class j
     {
         /// <inheritdoc />
@@ -64,6 +64,61 @@ namespace backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Coachs");
+                });
+
+            modelBuilder.Entity("backend.Models.ConversationMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("SessionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId");
+
+                    b.ToTable("ConversationMessages");
+                });
+
+            modelBuilder.Entity("backend.Models.ConversationSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("MembreId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Titre")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MembreId");
+
+                    b.ToTable("ConversationSessions");
                 });
 
             modelBuilder.Entity("backend.Models.Cours", b =>
@@ -184,6 +239,57 @@ namespace backend.Migrations
                     b.HasIndex("MembreId");
 
                     b.ToTable("Exercices");
+                });
+
+            modelBuilder.Entity("backend.Models.HistoriqueEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<float?>("AncienObjectifPoids")
+                        .HasColumnType("float");
+
+                    b.Property<float?>("AncienPoids")
+                        .HasColumnType("float");
+
+                    b.Property<float?>("AncienneTaille")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<float?>("ImcSnapshot")
+                        .HasColumnType("float");
+
+                    b.Property<int>("MembreId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<float?>("NouveauPoids")
+                        .HasColumnType("float");
+
+                    b.Property<float?>("NouvelObjectifPoids")
+                        .HasColumnType("float");
+
+                    b.Property<float?>("NouvelleTaille")
+                        .HasColumnType("float");
+
+                    b.Property<string>("TypeEvenement")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MembreId");
+
+                    b.ToTable("Historiques");
                 });
 
             modelBuilder.Entity("backend.Models.Notification", b =>
@@ -517,10 +623,16 @@ namespace backend.Migrations
                     b.Property<DateTime>("DateInscription")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime?>("DateNaissance")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("IdSalleSport")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
+
+                    b.Property<float>("ObjectifPoids")
+                        .HasColumnType("float");
 
                     b.Property<string>("PhotoProfile")
                         .HasColumnType("longtext");
@@ -541,6 +653,28 @@ namespace backend.Migrations
                     b.HasDiscriminator().HasValue("SuperAdministrateur");
                 });
 
+            modelBuilder.Entity("backend.Models.ConversationMessage", b =>
+                {
+                    b.HasOne("backend.Models.ConversationSession", "Session")
+                        .WithMany("Messages")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+                });
+
+            modelBuilder.Entity("backend.Models.ConversationSession", b =>
+                {
+                    b.HasOne("backend.Models.Utilisateur", "Membre")
+                        .WithMany()
+                        .HasForeignKey("MembreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Membre");
+                });
+
             modelBuilder.Entity("backend.Models.EmploiDuTemps", b =>
                 {
                     b.HasOne("backend.Models.Coach", "Coach")
@@ -555,6 +689,17 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.Exercice", b =>
                 {
                     b.HasOne("backend.Models.Utilisateur", "Membre")
+                        .WithMany()
+                        .HasForeignKey("MembreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Membre");
+                });
+
+            modelBuilder.Entity("backend.Models.HistoriqueEntry", b =>
+                {
+                    b.HasOne("backend.Models.Membre", "Membre")
                         .WithMany()
                         .HasForeignKey("MembreId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -676,6 +821,11 @@ namespace backend.Migrations
                     b.Navigation("Cours");
 
                     b.Navigation("Salle");
+                });
+
+            modelBuilder.Entity("backend.Models.ConversationSession", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("backend.Models.Programme", b =>

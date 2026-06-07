@@ -6,6 +6,7 @@ using backend.Services.Admin;
 using backend.Services.Coach;
 using backend.Services.EmploiDuTemps;
 using backend.Services.MembreServices;
+using backend.Services.Historique;
 using backend.Services.ReservationService;
 using backend.Services.SalleInformation; // 1. Assure-toi d'ajouter ce namespace pour ton Hub
 using backend.Services.SuperAdminstrateur;
@@ -28,8 +29,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "http://localhost",
                 "http://localhost:4200",
-                "http://192.168.43.69",      // in case frontend also runs on this machine
-                "http://192.168.43.69:4200"
+                "http://192.168.100.207",      // in case frontend also runs on this machine
+                "http://192.168.100.207:4200"
               )
               .AllowAnyMethod()
               .AllowAnyHeader()
@@ -58,6 +59,9 @@ builder.Services.AddScoped<EmploiDuTempsService>();
 builder.Services.AddScoped<SalleInformationService>();
 builder.Services.AddScoped<ExerciceService>();
 builder.Services.AddScoped<ProgrammeService>();
+builder.Services.AddScoped<HistoriqueService>();
+builder.Services.AddScoped<MotivationService>();
+
 
 
 
@@ -118,7 +122,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 
     }); builder.Services.AddEndpointsApiExplorer();
- 
+
 // ================= SWAGGER + JWT =================
 builder.Services.AddSwaggerGen(options =>
 {

@@ -2,6 +2,7 @@
 using backend.Data;
 using backend.Models;
 using backend.DTOs.Admin;
+using backend.Services.Historique;
 
 namespace backend.Services.Admin
 {
@@ -9,19 +10,22 @@ namespace backend.Services.Admin
     {
         private readonly AppDbContext db;
         private readonly EmailService email;
+        private readonly HistoriqueService historiqueService;
 
         private static readonly HashSet<string> _idsSalleValides = new()
         {
             "SPORT-2024-001", "SPORT-2024-002", "SPORT-2024-003",
             "SPORT-2024-004", "SPORT-2024-005", "SPORT-2024-006",
             "SPORT-2024-007", "SPORT-2024-008", "SPORT-2024-009",
-            "SPORT-2024-010"
+            "SPORT-2024-010",
+            "SPORT-2026-001"
         };
 
-        public AdminService(AppDbContext db, EmailService email)
+        public AdminService(AppDbContext db, EmailService email, HistoriqueService historiqueService)
         {
             this.db = db;
             this.email = email;
+            this.historiqueService = historiqueService;
         }
 
         public VerificationIdResult VerifierIdSalle(string idSalle)
@@ -29,28 +33,13 @@ namespace backend.Services.Admin
             idSalle = idSalle.Trim().ToUpper();
 
             if (!_idsSalleValides.Contains(idSalle))
-                return new VerificationIdResult
-                {
-                    Valide = false,
-                    Message = "ID non reconnu",
-                    IdSalle = idSalle
-                };
+                return new VerificationIdResult { Valide = false, Message = "ID non reconnu", IdSalle = idSalle };
 
             var dejaEnBase = db.Membres.Any(m => m.IdSalleSport == idSalle);
             if (dejaEnBase)
-                return new VerificationIdResult
-                {
-                    Valide = false,
-                    Message = "ID déjà utilisé",
-                    IdSalle = idSalle
-                };
+                return new VerificationIdResult { Valide = false, Message = "ID déjà utilisé", IdSalle = idSalle };
 
-            return new VerificationIdResult
-            {
-                Valide = true,
-                Message = "ID valide ✓",
-                IdSalle = idSalle
-            };
+            return new VerificationIdResult { Valide = true, Message = "ID valide ✓", IdSalle = idSalle };
         }
 
         public async Task<MembreResponseDto> CreerCompteMembre(CreateMembreDto dto)
@@ -62,17 +51,15 @@ namespace backend.Services.Admin
             var existe = await db.Utilisateurs
                 .AnyAsync(u => u.Email.ToLower() == dto.Email.ToLower().Trim());
             if (existe)
-                throw new InvalidOperationException(
-                    $"Un compte avec l'email '{dto.Email}' existe déjà");
-            // Vérification téléphone dupliqué
+                throw new InvalidOperationException($"Un compte avec l'email '{dto.Email}' existe déjà");
+
             if (!string.IsNullOrWhiteSpace(dto.Telephone))
             {
-                var telExiste = await db.Membres
-                    .AnyAsync(m => m.Telephone == dto.Telephone.Trim());
+                var telExiste = await db.Membres.AnyAsync(m => m.Telephone == dto.Telephone.Trim());
                 if (telExiste)
-                    throw new InvalidOperationException(
-                        "Ce numéro de téléphone est déjà utilisé");
+                    throw new InvalidOperationException("Ce numéro de téléphone est déjà utilisé");
             }
+
             var motDePasseTemp = GenererMotDePasse();
 
             var membre = new Membre
@@ -80,13 +67,15 @@ namespace backend.Services.Admin
                 IdSalleSport = dto.IdSalleSport.Trim().ToUpper(),
                 Nom = dto.Nom.Trim(),
                 Prenom = dto.Prenom.Trim(),
-                genre = dto.genre?.Trim().ToLower(),
+                genre = dto.genre?.Trim().ToLower() ?? "",
                 Email = dto.Email.ToLower().Trim(),
                 MotDePasse = BCrypt.Net.BCrypt.HashPassword(motDePasseTemp),
                 Role = "Membre",
-                Telephone = dto.Telephone?.Trim(),  
-                Taille = dto.Taille,             
-                Poids = dto.Poids,           
+                Telephone = dto.Telephone?.Trim(),
+                Taille = dto.Taille,
+                Poids = dto.Poids,
+                ObjectifPoids = dto.ObjectifPoids,
+                DateNaissance = dto.DateNaissance,
                 DateCreation = DateTime.UtcNow,
                 DateInscription = DateTime.UtcNow
             };
@@ -94,10 +83,13 @@ namespace backend.Services.Admin
             db.Membres.Add(membre);
             await db.SaveChangesAsync();
 
+            // Enregistrer l'inscription dans l'historique
+            await historiqueService.EnregistrerInscription(membre.Id, membre.Poids, membre.Taille);
+
             await email.EnvoyerEmailInscription(
                 membre.Email,
                 $"{membre.Prenom} {membre.Nom}",
-                motDePasseTemp);  
+                motDePasseTemp);
 
             return MapToDto(membre);
         }
@@ -147,14 +139,8 @@ namespace backend.Services.Admin
 
         public object GetStatutIds()
         {
-            var idsUtilisesEnBase = db.Membres
-                .Select(m => m.IdSalleSport)
-                .ToHashSet();
-
-            var idsDisponibles = _idsSalleValides
-                .Except(idsUtilisesEnBase)
-                .OrderBy(x => x)
-                .ToList();
+            var idsUtilisesEnBase = db.Membres.Select(m => m.IdSalleSport).ToHashSet();
+            var idsDisponibles = _idsSalleValides.Except(idsUtilisesEnBase).OrderBy(x => x).ToList();
 
             return new
             {

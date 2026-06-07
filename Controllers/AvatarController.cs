@@ -1,6 +1,9 @@
 ﻿using backend.DTOs.Avatar;
+using backend.Services.Avatar.Interfaces;
+using backend.Services.Historique;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 
@@ -13,15 +16,24 @@ namespace backend.Controllers
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<AvatarController> _logger;
+        private readonly IAvatarService _avatarService;
+        private readonly HistoriqueService _historiqueService;
 
         public AvatarController(
             IHttpClientFactory httpClientFactory,
-            ILogger<AvatarController> logger)
+            ILogger<AvatarController> logger,
+            IAvatarService avatarService,
+            HistoriqueService historiqueService)
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
+            _avatarService = avatarService;
+            _historiqueService = historiqueService;
         }
 
+        /// <summary>
+        /// Génère les avatars SVG via FastAPI + retourne la comparaison C# locale.
+        /// </summary>
         [HttpPost("predict")]
         public async Task<IActionResult> PredictAvatar([FromBody] AvatarRequestDto request)
         {
@@ -29,16 +41,17 @@ namespace backend.Controllers
             {
 
                 var genreStr = User.Claims
-            .FirstOrDefault(c => c.Type == "genre")?.Value ?? "Homme";
+                    .FirstOrDefault(c => c.Type == "genre")?.Value ?? "Homme";
 
                 // Convertir en int pour FastAPI (0=Femme, 1=Homme)
                 int genre = genreStr.ToLower() == "femme" ? 0 : 1;
 
+                // ── 1. Appel FastAPI ────────────────────────────────────
                 var client = _httpClientFactory.CreateClient("FastAPI");
 
                 var fastApiPayload = new
                 {
-                    genre = genre,           // ← depuis JWT, pas depuis request
+                    genre = genre,
                     taille = request.Taille,
                     poids = request.Poids,
                     objectif_poids = request.ObjectifPoids
@@ -57,16 +70,32 @@ namespace backend.Controllers
                 }
 
                 var responseJson = await response.Content.ReadAsStringAsync();
-
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-
                 var avatarResponse = JsonSerializer.Deserialize<AvatarResponseDto>(
-                    responseJson, options);
+                    responseJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                return Ok(avatarResponse);
+                // ── 2. Comparaison locale (C#) ─────────────────────────
+                var comparaison = _avatarService.Comparer(
+                    taille: request.Taille,
+                    poidsActuel: request.Poids,
+                    poidsObjectif: request.ObjectifPoids);
+
+                // ── 3. Enregistrer dans l'historique ───────────────────
+                var membreIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (int.TryParse(membreIdStr, out int membreId))
+                {
+                    await _historiqueService.EnregistrerAvatarGenere(
+                        membreId,
+                        request.Poids,
+                        request.ObjectifPoids);
+                }
+
+                // ── 4. Réponse enrichie ────────────────────────────────
+                return Ok(new
+                {
+                    avatar = avatarResponse,
+                    comparaison
+                });
             }
             catch (HttpRequestException ex)
             {
@@ -80,6 +109,23 @@ namespace backend.Controllers
             }
         }
 
+        /// <summary>
+        /// Comparaison rapide sans appel FastAPI (local uniquement).
+        /// </summary>
+        [HttpPost("comparer")]
+        public IActionResult Comparer([FromBody] AvatarRequestDto request)
+        {
+            var comparaison = _avatarService.Comparer(
+                request.Taille,
+                request.Poids,
+                request.ObjectifPoids);
+
+            return Ok(comparaison);
+        }
+
+        /// <summary>
+        /// Health check FastAPI.
+        /// </summary>
         [HttpGet("health")]
         [AllowAnonymous]
         public async Task<IActionResult> HealthCheck()

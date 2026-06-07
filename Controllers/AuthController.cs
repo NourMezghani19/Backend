@@ -20,7 +20,7 @@ namespace backend.Controllers
         public AuthController(AuthService authService)
         {
             this.authService = authService;
-            
+
         }
 
         [HttpPost("login")]

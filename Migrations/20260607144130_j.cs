@@ -160,6 +160,8 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Taille = table.Column<float>(type: "float", nullable: true),
                     Poids = table.Column<float>(type: "float", nullable: true),
+                    ObjectifPoids = table.Column<float>(type: "float", nullable: true),
+                    DateNaissance = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     PhotoProfile = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DateInscription = table.Column<DateTime>(type: "datetime(6)", nullable: true)
@@ -264,6 +266,29 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ConversationSessions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    MembreId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Titre = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConversationSessions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ConversationSessions_Utilisateurs_MembreId",
+                        column: x => x.MembreId,
+                        principalTable: "Utilisateurs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Exercices",
                 columns: table => new
                 {
@@ -287,6 +312,38 @@ namespace backend.Migrations
                     table.PrimaryKey("PK_Exercices", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Exercices_Utilisateurs_MembreId",
+                        column: x => x.MembreId,
+                        principalTable: "Utilisateurs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Historiques",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    MembreId = table.Column<int>(type: "int", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    TypeEvenement = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AncienPoids = table.Column<float>(type: "float", nullable: true),
+                    NouveauPoids = table.Column<float>(type: "float", nullable: true),
+                    AncienneTaille = table.Column<float>(type: "float", nullable: true),
+                    NouvelleTaille = table.Column<float>(type: "float", nullable: true),
+                    AncienObjectifPoids = table.Column<float>(type: "float", nullable: true),
+                    NouvelObjectifPoids = table.Column<float>(type: "float", nullable: true),
+                    ImcSnapshot = table.Column<float>(type: "float", nullable: true),
+                    Note = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Historiques", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Historiques_Utilisateurs_MembreId",
                         column: x => x.MembreId,
                         principalTable: "Utilisateurs",
                         principalColumn: "Id",
@@ -351,6 +408,31 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ConversationMessages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    SessionId = table.Column<int>(type: "int", nullable: false),
+                    Role = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Content = table.Column<string>(type: "TEXT", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SentAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConversationMessages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ConversationMessages_ConversationSessions_SessionId",
+                        column: x => x.SessionId,
+                        principalTable: "ConversationSessions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "ProgrammeExercices",
                 columns: table => new
                 {
@@ -385,6 +467,16 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ConversationMessages_SessionId",
+                table: "ConversationMessages",
+                column: "SessionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ConversationSessions_MembreId",
+                table: "ConversationSessions",
+                column: "MembreId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_EmploisDuTemps_CoachId",
                 table: "EmploisDuTemps",
                 column: "CoachId");
@@ -397,6 +489,11 @@ namespace backend.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Exercices_MembreId",
                 table: "Exercices",
+                column: "MembreId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Historiques_MembreId",
+                table: "Historiques",
                 column: "MembreId");
 
             migrationBuilder.CreateIndex(
@@ -467,7 +564,13 @@ namespace backend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "ConversationMessages");
+
+            migrationBuilder.DropTable(
                 name: "EmploisDuTemps");
+
+            migrationBuilder.DropTable(
+                name: "Historiques");
 
             migrationBuilder.DropTable(
                 name: "HoraireJour");
@@ -480,6 +583,9 @@ namespace backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "Reservations");
+
+            migrationBuilder.DropTable(
+                name: "ConversationSessions");
 
             migrationBuilder.DropTable(
                 name: "SalleInformations");
