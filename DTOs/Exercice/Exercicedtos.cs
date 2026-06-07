@@ -16,6 +16,12 @@ public record ExerciceResponseDto(
     DateTime? ExpiresAt,
     int MembreId
 );
+// Remplacer l'ancien ProgrammeResponseDto dans ce fichier par :
+public record ProgrammeGenereDto(
+    string Titre,
+    string Description,
+    List<JourProgrammeDto> Jours
+);
 
 // ─── Create ───────────────────────────────────────────────────────────────────
 public record CreateExerciceDto(
@@ -45,12 +51,6 @@ public record UpdateExerciceDto(
 );
 
 // ─── Programme généré par l'IA ────────────────────────────────────────────────
-public record ProgrammeResponseDto(
-    string Titre,
-    string Description,
-    List<JourProgrammeDto> Jours
-);
-
 public record JourProgrammeDto(
     string Jour,
     string Focus,

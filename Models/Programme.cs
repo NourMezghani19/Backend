@@ -39,6 +39,11 @@ public class ProgrammeExercice
     public Programme? Programme { get; set; }
 
     public int ExerciceId { get; set; }
+    // ↓ champs superset stockés sur le lien (pas besoin d'un 2e Exercice en DB)
+    public string? SupersetNom { get; set; }
+    public string? SupersetDescription { get; set; }
+    public int? SupersetSeries { get; set; }
+    public int? SupersetRepetitions { get; set; }
     [ForeignKey(nameof(ExerciceId))]
     public Exercice? Exercice { get; set; }
 

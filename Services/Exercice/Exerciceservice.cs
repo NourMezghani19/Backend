@@ -38,7 +38,7 @@ public class ExerciceService(AppDbContext db)
             .ToListAsync();
     }
 
-    // ─── GET BY ID (avec vérification ownership) ──────────────────────────────
+    // ─── GET BY ID ────────────────────────────────────────────────────────────
     public async Task<ExerciceResponseDto> GetById(int id, int membreId)
     {
         var e = await db.Exercices.FindAsync(id)
@@ -62,7 +62,7 @@ public class ExerciceService(AppDbContext db)
             Description = dto.Description,
             MembreId = membreId,
             CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(42) // 6 semaines
+            ExpiresAt = DateTime.UtcNow.AddDays(42)
         };
         db.Exercices.Add(e);
         await db.SaveChangesAsync();
@@ -102,17 +102,17 @@ public class ExerciceService(AppDbContext db)
         await db.SaveChangesAsync();
     }
 
-    // ─── GÉNÉRER UN PROGRAMME (texte structuré) ───────────────────────────────
-    public async Task<ProgrammeResponseDto> GenererProgramme(int membreId)
+    // ─── GÉNÉRER UN PROGRAMME IA ──────────────────────────────────────────────
+    public async Task<ProgrammeGenereDto> GenererProgramme(int membreId)
     {
         var exercices = await db.Exercices
             .Where(e => e.MembreId == membreId && e.Actif)
             .ToListAsync();
 
         if (exercices.Count == 0)
-            throw new InvalidOperationException("Aucun exercice disponible pour générer un programme.");
+            throw new InvalidOperationException(
+                "Aucun exercice disponible pour générer un programme.");
 
-        // Répartition intelligente sur 3 jours
         var grouped = exercices
             .Select((e, i) => (exercice: e, jour: i % 3))
             .GroupBy(x => x.jour)
@@ -135,7 +135,7 @@ public class ExerciceService(AppDbContext db)
             )).ToList()
         )).ToList();
 
-        return new ProgrammeResponseDto(
+        return new ProgrammeGenereDto(
             "Programme Personnalisé",
             $"Programme généré à partir de vos {exercices.Count} exercices sur 3 séances par semaine.",
             jours

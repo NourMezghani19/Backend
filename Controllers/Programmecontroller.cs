@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using backend.DTOs.Programmes;
+using backend.DTOs.Exercices;
 using backend.Services;
 
 namespace backend.Controllers;
@@ -39,6 +39,20 @@ public class ProgrammeController(ProgrammeService svc) : ControllerBase
             var r = await svc.Create(dto, GetMembreId());
             return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
         }
+        catch (Exception ex) { return Conflict(new { message = ex.Message }); }
+    }
+    // PUT api/programme/{id}
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<ProgrammeResponseDto>> Update(int id, UpdateProgrammeDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        try
+        {
+            var r = await svc.Update(id, dto, GetMembreId());
+            return Ok(r);
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+        catch (UnauthorizedAccessException) { return Forbid(); }
         catch (Exception ex) { return Conflict(new { message = ex.Message }); }
     }
 

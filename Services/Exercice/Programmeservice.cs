@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using backend.Data;
-using backend.DTOs.Programmes;
+﻿using backend.Data;
+using backend.DTOs.Exercices;
 using backend.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
@@ -25,9 +25,60 @@ public class ProgrammeService(AppDbContext db)
                 pe.Exercice.Repetitions,
                 pe.Exercice.Mode.ToString(),
                 pe.Exercice.Description,
-                pe.Ordre
+                pe.Ordre,
+                pe.SupersetNom,
+                pe.SupersetDescription,
+                pe.SupersetSeries,
+                pe.SupersetRepetitions
             )).ToList()
     );
+
+    // ─── Helper : créer et lier les exercices ─────────────────────────────────
+    private async Task CreerExercices(
+        int programmeId,
+        int membreId,
+        List<CreateExerciceProgrammeDto> exercices)
+    {
+        int ordre = 0;
+        foreach (var exDto in exercices)
+        {
+            // Exercice A
+            var exA = new Exercice
+            {
+                Nom = exDto.Nom.Trim(),
+                Description = exDto.Description?.Trim(),
+                Series = exDto.Series,
+                Repetitions = exDto.Repetitions,
+                Mode = exDto.Mode,
+                MembreId = membreId,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddDays(35),
+            };
+            db.Exercices.Add(exA);
+            await db.SaveChangesAsync();
+
+            var pe = new ProgrammeExercice
+            {
+                ProgrammeId = programmeId,
+                ExerciceId = exA.Id,
+                Ordre = ordre++,
+            };
+
+            // Stocker les infos superset sur le lien de jointure
+            if (exDto.Mode == ModeExecution.Superset
+                && !string.IsNullOrWhiteSpace(exDto.SupersetNom))
+            {
+                pe.SupersetNom = exDto.SupersetNom.Trim();
+                pe.SupersetDescription = exDto.SupersetDescription?.Trim();
+                pe.SupersetSeries = exDto.SupersetSeries;
+                pe.SupersetRepetitions = exDto.SupersetRepetitions;
+            }
+
+            db.ProgrammeExercices.Add(pe);
+        }
+
+        await db.SaveChangesAsync();
+    }
 
     // ─── Purge automatique des programmes expirés ─────────────────────────────
     private async Task PurgerExpires()
@@ -39,12 +90,7 @@ public class ProgrammeService(AppDbContext db)
 
         foreach (var prog in expires)
         {
-            // Supprimer les exercices liés
-            var exerciceIds = prog.ProgrammeExercices.Select(pe => pe.ExerciceId).ToList();
-            await db.Exercices
-                .Where(e => exerciceIds.Contains(e.Id))
-                .ExecuteDeleteAsync();
-
+            db.ProgrammeExercices.RemoveRange(prog.ProgrammeExercices);
             db.Programmes.Remove(prog);
         }
 
@@ -52,7 +98,7 @@ public class ProgrammeService(AppDbContext db)
             await db.SaveChangesAsync();
     }
 
-    // ─── GET ALL par membre ───────────────────────────────────────────────────
+    // ─── GET ALL ──────────────────────────────────────────────────────────────
     public async Task<List<ProgrammeResponseDto>> GetAllByMembre(int membreId)
     {
         await PurgerExpires();
@@ -83,73 +129,49 @@ public class ProgrammeService(AppDbContext db)
     // ─── CREATE ───────────────────────────────────────────────────────────────
     public async Task<ProgrammeResponseDto> Create(CreateProgrammeDto dto, int membreId)
     {
-        // 1. Créer le programme
         var programme = new Programme
         {
             Nom = dto.Nom.Trim(),
             Description = dto.Description?.Trim(),
             MembreId = membreId,
             CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(35), // 5 semaines
+            ExpiresAt = DateTime.UtcNow.AddDays(35),
         };
         db.Programmes.Add(programme);
-        await db.SaveChangesAsync(); // pour avoir l'Id
-
-        // 2. Créer les exercices et les lier
-        int ordre = 0;
-        foreach (var exDto in dto.Exercices)
-        {
-            // Exercice A
-            var exA = new Exercice
-            {
-                Nom = exDto.Nom.Trim(),
-                Description = exDto.Description?.Trim(),
-                Series = exDto.Series,
-                Repetitions = exDto.Repetitions,
-                Mode = exDto.Mode,
-                MembreId = membreId,
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddDays(35),
-            };
-            db.Exercices.Add(exA);
-            await db.SaveChangesAsync();
-
-            db.ProgrammeExercices.Add(new ProgrammeExercice
-            {
-                ProgrammeId = programme.Id,
-                ExerciceId = exA.Id,
-                Ordre = ordre++
-            });
-
-            // Exercice B (Superset uniquement)
-            if (exDto.Mode == ModeExecution.Superset && !string.IsNullOrWhiteSpace(exDto.SupersetNom))
-            {
-                var exB = new Exercice
-                {
-                    Nom = exDto.SupersetNom.Trim(),
-                    Description = exDto.SupersetDescription?.Trim(),
-                    Series = exDto.SupersetSeries,
-                    Repetitions = exDto.SupersetRepetitions,
-                    Mode = ModeExecution.Superset,
-                    MembreId = membreId,
-                    CreatedAt = DateTime.UtcNow,
-                    ExpiresAt = DateTime.UtcNow.AddDays(35),
-                };
-                db.Exercices.Add(exB);
-                await db.SaveChangesAsync();
-
-                db.ProgrammeExercices.Add(new ProgrammeExercice
-                {
-                    ProgrammeId = programme.Id,
-                    ExerciceId = exB.Id,
-                    Ordre = ordre++
-                });
-            }
-        }
-
         await db.SaveChangesAsync();
 
-        // Recharger avec les includes
+        await CreerExercices(programme.Id, membreId, dto.Exercices);
+
+        return await GetById(programme.Id, membreId);
+    }
+
+    // ─── UPDATE ───────────────────────────────────────────────────────────────
+    public async Task<ProgrammeResponseDto> Update(int id, UpdateProgrammeDto dto, int membreId)
+    {
+        var programme = await db.Programmes
+            .Include(p => p.ProgrammeExercices)
+            .FirstOrDefaultAsync(p => p.Id == id)
+            ?? throw new KeyNotFoundException("Programme introuvable.");
+
+        if (programme.MembreId != membreId)
+            throw new UnauthorizedAccessException("Accès refusé.");
+
+        programme.Nom = dto.Nom.Trim();
+        programme.Description = dto.Description?.Trim();
+
+        // Supprimer anciens liens puis anciens exercices
+        var ancienIds = programme.ProgrammeExercices
+            .Select(pe => pe.ExerciceId).ToList();
+
+        db.ProgrammeExercices.RemoveRange(programme.ProgrammeExercices);
+        await db.SaveChangesAsync();
+
+        await db.Exercices
+            .Where(e => ancienIds.Contains(e.Id))
+            .ExecuteDeleteAsync();
+
+        await CreerExercices(programme.Id, membreId, dto.Exercices);
+
         return await GetById(programme.Id, membreId);
     }
 
@@ -164,8 +186,12 @@ public class ProgrammeService(AppDbContext db)
         if (p.MembreId != membreId)
             throw new UnauthorizedAccessException("Accès refusé.");
 
-        // Supprimer les exercices liés
-        var exerciceIds = p.ProgrammeExercices.Select(pe => pe.ExerciceId).ToList();
+        var exerciceIds = p.ProgrammeExercices
+            .Select(pe => pe.ExerciceId).ToList();
+
+        db.ProgrammeExercices.RemoveRange(p.ProgrammeExercices);
+        await db.SaveChangesAsync();
+
         await db.Exercices
             .Where(e => exerciceIds.Contains(e.Id))
             .ExecuteDeleteAsync();

@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260606163046_j")]
+    [Migration("20260607002657_j")]
     partial class j
     {
         /// <inheritdoc />
@@ -278,6 +278,18 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("ProgrammeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SupersetDescription")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("SupersetNom")
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("SupersetRepetitions")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SupersetSeries")
                         .HasColumnType("int");
 
                     b.HasKey("Id");

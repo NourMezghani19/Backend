@@ -277,6 +277,18 @@ namespace backend.Migrations
                     b.Property<int>("ProgrammeId")
                         .HasColumnType("int");
 
+                    b.Property<string>("SupersetDescription")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("SupersetNom")
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("SupersetRepetitions")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SupersetSeries")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ExerciceId");

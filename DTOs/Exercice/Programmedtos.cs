@@ -1,32 +1,35 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using backend.Models;
 
-namespace backend.DTOs.Programmes;
+namespace backend.DTOs.Exercices;
 
 // ─── Créer un programme ───────────────────────────────────────────────────────
 public record CreateProgrammeDto(
     [Required(ErrorMessage = "Nom obligatoire")]
     [MinLength(2), MaxLength(150)]
     string Nom,
-
     string? Description,
-
-    // Liste des exercices à créer ET lier au programme
     [Required]
     List<CreateExerciceProgrammeDto> Exercices
 );
 
-// Un exercice dans le formulaire de création de programme
+// ─── Mettre à jour un programme (même structure que Create) ──────────────────
+public record UpdateProgrammeDto(
+    [Required(ErrorMessage = "Nom obligatoire")]
+    [MinLength(2), MaxLength(150)]
+    string Nom,
+    string? Description,
+    [Required]
+    List<CreateExerciceProgrammeDto> Exercices
+);
+
+// ─── Un exercice dans le formulaire ──────────────────────────────────────────
 public record CreateExerciceProgrammeDto(
     [Required] string Nom,
     string? Description,
-
     [Range(1, 20)] int Series = 3,
     [Range(1, 200)] int Repetitions = 12,
-
     ModeExecution Mode = ModeExecution.Normal,
-
-    // Exercice B si mode Superset
     string? SupersetNom = null,
     string? SupersetDescription = null,
     int SupersetSeries = 3,
@@ -45,6 +48,7 @@ public record ProgrammeResponseDto(
     List<ProgrammeExerciceDto> Exercices
 );
 
+// ─── Réponse exercice — champs superset ajoutés ───────────────────────────────
 public record ProgrammeExerciceDto(
     int ExerciceId,
     string Nom,
@@ -52,5 +56,10 @@ public record ProgrammeExerciceDto(
     int Repetitions,
     string Mode,
     string? Description,
-    int Ordre
+    int Ordre,
+    // ↓ champs superset
+    string? SupersetNom,
+    string? SupersetDescription,
+    int? SupersetSeries,
+    int? SupersetRepetitions
 );

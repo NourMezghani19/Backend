@@ -358,6 +358,12 @@ namespace backend.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     ProgrammeId = table.Column<int>(type: "int", nullable: false),
                     ExerciceId = table.Column<int>(type: "int", nullable: false),
+                    SupersetNom = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SupersetDescription = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SupersetSeries = table.Column<int>(type: "int", nullable: true),
+                    SupersetRepetitions = table.Column<int>(type: "int", nullable: true),
                     Ordre = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
