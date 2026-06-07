@@ -9,6 +9,7 @@ namespace backend.Services.Admin
     {
         private readonly AppDbContext db;
         private readonly EmailService email;
+        private readonly ReglementInterneService reglementSvc;
 
         private static readonly HashSet<string> _idsSalleValides = new()
         {
@@ -18,10 +19,16 @@ namespace backend.Services.Admin
             "SPORT-2024-010"
         };
 
-        public AdminService(AppDbContext db, EmailService email)
+        /*   public AdminService(AppDbContext db, EmailService email)
+           {
+               this.db = db;
+               this.email = email;
+           }*/
+        public AdminService(AppDbContext db, EmailService email, ReglementInterneService reglementSvc) // ✅ Ajouter
         {
             this.db = db;
             this.email = email;
+            this.reglementSvc = reglementSvc; // ✅ Ajouter
         }
 
         public VerificationIdResult VerifierIdSalle(string idSalle)
@@ -97,8 +104,15 @@ namespace backend.Services.Admin
             await email.EnvoyerEmailInscription(
                 membre.Email,
                 $"{membre.Prenom} {membre.Nom}",
-                motDePasseTemp);  
-
+                motDePasseTemp);
+            try
+            {
+                await reglementSvc.EnvoyerAMembre(membre.Id);
+            }
+            catch
+            {
+                // Ne pas bloquer la création si le règlement n'existe pas encore
+            }
             return MapToDto(membre);
         }
 

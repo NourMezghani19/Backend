@@ -52,6 +52,7 @@ builder.Services.AddSignalR(); // 2. Ajout du service SignalR
 
 // ================= SERVICES =================
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ReglementInterneService>();
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<SuperAdministrateurService>();

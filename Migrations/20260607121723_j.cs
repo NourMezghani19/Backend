@@ -91,6 +91,47 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "PlansAbonnement",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Nom = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "varchar(300)", maxLength: 300, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DureeEnMois = table.Column<int>(type: "int", nullable: false),
+                    Prix = table.Column<decimal>(type: "decimal(8,2)", nullable: false),
+                    EstActif = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CreeLe = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifieLe = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlansAbonnement", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ReglementsInternes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Titre = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Contenu = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DateModification = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifieParId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReglementsInternes", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "SalleInformations",
                 columns: table => new
                 {
@@ -264,6 +305,61 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Avis",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    MembreId = table.Column<int>(type: "int", nullable: true),
+                    NomAnonyme = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Commentaire = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Note = table.Column<int>(type: "int", nullable: false),
+                    EstBloque = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CreeLe = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Avis", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Avis_Utilisateurs_MembreId",
+                        column: x => x.MembreId,
+                        principalTable: "Utilisateurs",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "MessagesContact",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    NomPrenom = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Email = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Sujet = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Message = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Lu = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    EnvoyeLe = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    MembreId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MessagesContact", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MessagesContact_Utilisateurs_MembreId",
+                        column: x => x.MembreId,
+                        principalTable: "Utilisateurs",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Reservations",
                 columns: table => new
                 {
@@ -292,6 +388,16 @@ namespace backend.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.InsertData(
+                table: "ReglementsInternes",
+                columns: new[] { "Id", "Contenu", "DateModification", "ModifieParId", "Titre" },
+                values: new object[] { 1, "\r\n🏋️ RÈGLEMENT INTÉRIEUR — PLF GYM\r\n\r\nChez PLF GYM, nous voulons que tout le monde fasse du sport en sécurité dans un cadre agréable.\r\nTout entrant s'engage à respecter ces règles.\r\nEn cas de non-respect ou violation des conditions générales, l'équipe peut vous expulser et résilier votre contrat.\r\n\r\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n🧼 HYGIÈNE ET PROPRETÉ\r\n\r\n- Portez des chaussures de sport propres et vêtements adaptés.\r\n- Utilisez une serviette à l'entraînement.\r\n- Claquettes et \"Crocs\" sont interdits.\r\n- Déposez tous vos effets personnels dans les casiers prévus et libérez-les après votre départ.\r\n\r\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n🔒 SÉCURITÉ ET USAGE\r\n\r\n- Utilisez les appareils à leur usage prévu et rangez-les après.\r\n- Nourriture et récipients non refermables interdits en zone d'entraînement.\r\n- Connaissez l'équipement et vos limites, vous êtes responsable de votre bien-être.\r\n\r\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n🤝 RESPECT DES AUTRES\r\n\r\n- Pas de chutes bruyantes d'équipements, évitez les bruits forts.\r\n- Tolérance zéro : violence verbale, physique...\r\n- Respectez tout interdit : gestes, harcèlement...\r\n- Laissez les appareils libres si non utilisés activement.\r\n\r\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n🗄️ RÈGLES GÉNÉRALES ET CASIERS\r\n\r\n- Respectez les instructions du personnel.\r\n- Interdit de laisser vos effets personnels.\r\n- Les casiers sont pour la séance seulement. En cas de non-libération, la direction a le droit d'ouvrir les casiers.\r\n\r\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n⚖️ DROITS DES CLIENTS\r\n\r\n- La salle doit respecter les normes de sécurité et d'hygiène.\r\n- La salle est tenue de couvrir la responsabilité civile de tous les usagers, ce qui protège les clients en cas d'accident lié aux installations ou au personnel.\r\n- Droit de demander le contrat avant signature.\r\n- Droit de faire une séance d'essai.\r\n- La salle met à votre disposition des coachs durant toutes les heures de travail qui pourraient vous guider vers vos objectifs.\r\n- Chaque adhérent a le droit de demander son programme par son Coach.\r\n", new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 1, "Règlement Intérieur — PLF GYM" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Avis_MembreId",
+                table: "Avis",
+                column: "MembreId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_EmploisDuTemps_CoachId",
                 table: "EmploisDuTemps",
@@ -301,6 +407,11 @@ namespace backend.Migrations
                 name: "IX_HoraireJour_SalleInformationId",
                 table: "HoraireJour",
                 column: "SalleInformationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MessagesContact_MembreId",
+                table: "MessagesContact",
+                column: "MembreId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reservations_MembreId",
@@ -345,13 +456,25 @@ namespace backend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Avis");
+
+            migrationBuilder.DropTable(
                 name: "EmploisDuTemps");
 
             migrationBuilder.DropTable(
                 name: "HoraireJour");
 
             migrationBuilder.DropTable(
+                name: "MessagesContact");
+
+            migrationBuilder.DropTable(
                 name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "PlansAbonnement");
+
+            migrationBuilder.DropTable(
+                name: "ReglementsInternes");
 
             migrationBuilder.DropTable(
                 name: "Reservations");

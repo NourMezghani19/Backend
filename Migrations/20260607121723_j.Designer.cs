@@ -12,7 +12,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260604194114_j")]
+    [Migration("20260607121723_j")]
     partial class j
     {
         /// <inheritdoc />
@@ -24,6 +24,42 @@ namespace backend.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("backend.Models.Avis", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Commentaire")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime>("CreeLe")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("EstBloque")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int?>("MembreId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NomAnonyme")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("Note")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MembreId");
+
+                    b.ToTable("Avis");
+                });
 
             modelBuilder.Entity("backend.Models.Coach", b =>
                 {
@@ -139,6 +175,49 @@ namespace backend.Migrations
                     b.ToTable("EmploisDuTemps");
                 });
 
+            modelBuilder.Entity("backend.Models.MessageContact", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<DateTime>("EnvoyeLe")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("Lu")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int?>("MembreId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("NomPrenom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Sujet")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MembreId");
+
+                    b.ToTable("MessagesContact");
+                });
+
             modelBuilder.Entity("backend.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -177,6 +256,80 @@ namespace backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("backend.Models.PlanAbonnement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreeLe")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<int>("DureeEnMois")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("ModifieLe")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<decimal>("Prix")
+                        .HasColumnType("decimal(8,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PlansAbonnement");
+                });
+
+            modelBuilder.Entity("backend.Models.ReglementInterne", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Contenu")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("DateModification")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("ModifieParId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Titre")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ReglementsInternes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Contenu = "\r\n🏋️ RÈGLEMENT INTÉRIEUR — PLF GYM\r\n\r\nChez PLF GYM, nous voulons que tout le monde fasse du sport en sécurité dans un cadre agréable.\r\nTout entrant s'engage à respecter ces règles.\r\nEn cas de non-respect ou violation des conditions générales, l'équipe peut vous expulser et résilier votre contrat.\r\n\r\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n🧼 HYGIÈNE ET PROPRETÉ\r\n\r\n- Portez des chaussures de sport propres et vêtements adaptés.\r\n- Utilisez une serviette à l'entraînement.\r\n- Claquettes et \"Crocs\" sont interdits.\r\n- Déposez tous vos effets personnels dans les casiers prévus et libérez-les après votre départ.\r\n\r\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n🔒 SÉCURITÉ ET USAGE\r\n\r\n- Utilisez les appareils à leur usage prévu et rangez-les après.\r\n- Nourriture et récipients non refermables interdits en zone d'entraînement.\r\n- Connaissez l'équipement et vos limites, vous êtes responsable de votre bien-être.\r\n\r\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n🤝 RESPECT DES AUTRES\r\n\r\n- Pas de chutes bruyantes d'équipements, évitez les bruits forts.\r\n- Tolérance zéro : violence verbale, physique...\r\n- Respectez tout interdit : gestes, harcèlement...\r\n- Laissez les appareils libres si non utilisés activement.\r\n\r\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n🗄️ RÈGLES GÉNÉRALES ET CASIERS\r\n\r\n- Respectez les instructions du personnel.\r\n- Interdit de laisser vos effets personnels.\r\n- Les casiers sont pour la séance seulement. En cas de non-libération, la direction a le droit d'ouvrir les casiers.\r\n\r\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n⚖️ DROITS DES CLIENTS\r\n\r\n- La salle doit respecter les normes de sécurité et d'hygiène.\r\n- La salle est tenue de couvrir la responsabilité civile de tous les usagers, ce qui protège les clients en cas d'accident lié aux installations ou au personnel.\r\n- Droit de demander le contrat avant signature.\r\n- Droit de faire une séance d'essai.\r\n- La salle met à votre disposition des coachs durant toutes les heures de travail qui pourraient vous guider vers vos objectifs.\r\n- Chaque adhérent a le droit de demander son programme par son Coach.\r\n",
+                            DateModification = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModifieParId = 1,
+                            Titre = "Règlement Intérieur — PLF GYM"
+                        });
                 });
 
             modelBuilder.Entity("backend.Models.Reservation", b =>
@@ -419,6 +572,15 @@ namespace backend.Migrations
                     b.HasDiscriminator().HasValue("SuperAdministrateur");
                 });
 
+            modelBuilder.Entity("backend.Models.Avis", b =>
+                {
+                    b.HasOne("backend.Models.Membre", "Membre")
+                        .WithMany()
+                        .HasForeignKey("MembreId");
+
+                    b.Navigation("Membre");
+                });
+
             modelBuilder.Entity("backend.Models.EmploiDuTemps", b =>
                 {
                     b.HasOne("backend.Models.Coach", "Coach")
@@ -428,6 +590,15 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Coach");
+                });
+
+            modelBuilder.Entity("backend.Models.MessageContact", b =>
+                {
+                    b.HasOne("backend.Models.Membre", "Membre")
+                        .WithMany()
+                        .HasForeignKey("MembreId");
+
+                    b.Navigation("Membre");
                 });
 
             modelBuilder.Entity("backend.Models.Reservation", b =>
