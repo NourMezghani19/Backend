@@ -151,7 +151,7 @@ public class CoursController(CoursService svc) : ControllerBase
     //////////////////////////////////////////////////////////////////////// return TOUTES les sessions disponibles  
 
     [HttpGet("disponibles")]
-    [Authorize]
+    
     public async Task<ActionResult<List<SessionResponseDto>>> GetDisponibles()
     {
         // On ne récupère plus le genre du token JWT.

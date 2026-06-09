@@ -31,6 +31,8 @@ namespace backend.Data
         public DbSet<MessageContact> MessagesContact { get; set; }
         public DbSet<Avis> Avis { get; set; }
         public DbSet<ReglementInterne> ReglementsInternes { get; set; }
+        public DbSet<Abonnement> Abonnements { get; set; }
+        public DbSet<Paiement> Paiements { get; set; }
 
 
 

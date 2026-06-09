@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using backend.BackgroundServices;
 using backend.Data;
 using backend.Hubs;
 using backend.Models;
@@ -67,6 +68,9 @@ builder.Services.AddScoped<PlanAbonnementService>();
 builder.Services.AddScoped<SalleService>();
 builder.Services.AddScoped<ContactService>();
 builder.Services.AddScoped<AvisService>();
+builder.Services.AddScoped<AbonnementService>();
+builder.Services.AddScoped<PaiementService>();
+builder.Services.AddHostedService<AbonnementExpirationJob>();
 
 
 
